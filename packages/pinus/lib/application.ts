@@ -532,7 +532,7 @@ export class Application {
             const plugin = this.usedPlugins[i];
             if (typeof plugin.beforeStartup === 'function') {
                 try {
-                    await plugin.beforeStartup(this)
+                    await plugin.beforeStartup(this);
                 } catch (e) {
                     logger.error(e);
                 }
