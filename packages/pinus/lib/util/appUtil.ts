@@ -116,7 +116,7 @@ export async function optComponents(comps: IComponent[], method: string) {
             try {
                 await (comp as any)[method]();
             } catch (e) {
-                logger.error(e);
+                logger.error(`component stage ${method} has encounter an error:${e}, stack:${e.stack}`);
             }
         }
     }
