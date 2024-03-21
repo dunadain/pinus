@@ -605,10 +605,18 @@ export class FrontendSession extends EventEmitter implements ISession {
         return super.on(event, listener);
     }
 
+    /**
+     * 
+     * @deprecated
+     */
     abind(uid: string) {
         this.bind(uid);
     }
 
+    /**
+     * 
+     * @deprecated
+     */
     aunbind(uid: string) {
         this.unbind(uid);
     }
