@@ -91,7 +91,7 @@ export function stopComps(comps: IComponent[], index: number, force: boolean, cb
     }
     let comp = comps[index];
     if (typeof comp.stop === 'function') {
-        comp.stop(force, function () {
+        comp.stop(force).then(() => {
             // ignore any error
             stopComps(comps, index + 1, force, cb);
         });
@@ -109,47 +109,57 @@ export function stopComps(comps: IComponent[], index: number, force: boolean, cb
  * @param {String} method component lifecycle method name, such as: start, stop
  * @param {Function} cb
  */
-export function optComponents(comps: IComponent[], method: string, cb: (err?: Error) => void) {
-    let i = 0;
-    async.forEachSeries(comps, function (comp, done) {
-        i++;
-        if (typeof (comp as any)[method] === 'function') {
-            (comp as any)[method](done);
-        } else {
-            done();
-        }
-    }, function (err: Error) {
-        if (err) {
-            if (typeof err === 'string') {
-                logger.error('fail to operate component, method: %s, err: %j', method, err);
-            } else {
-                logger.error('fail to operate component, method: %s, err: %j', method, err.stack);
+export async function optComponents(comps: IComponent[], method: string) {
+    for (let i = 0; i < comps.length; ++i) {
+        const comp = comps[i];
+        if (method in comp && typeof (comp as any)[method] === 'function') {
+            try {
+                await (comp as any)[method]();
+            } catch (e) {
+                logger.error(e);
             }
         }
-        utils.invokeCallback(cb, err);
-    });
+    }
+    // let i = 0;
+    // async.forEachSeries(comps, function (comp, done) {
+    //     i++;
+    //     if (typeof (comp as any)[method] === 'function') {
+    //         (comp as any)[method](done);
+    //     } else {
+    //         done();
+    //     }
+    // }, function (err: Error) {
+    //     if (err) {
+    //         if (typeof err === 'string') {
+    //             logger.error('fail to operate component, method: %s, err: %j', method, err);
+    //         } else {
+    //             logger.error('fail to operate component, method: %s, err: %j', method, err.stack);
+    //         }
+    //     }
+    //     utils.invokeCallback(cb, err);
+    // });
 }
 
-export function optLifecycles(comps: ILifeCycle[], method: string, app: Application, cb: (err?: Error) => void, arg2 ?: any) {
-    let i = 0;
-    async.forEachSeries(comps, function (comp, done) {
-        i++;
-        if (typeof (comp as any)[method] === 'function') {
-            (comp as any)[method](app , done , arg2);
-        } else {
-            done();
-        }
-    }, function (err: Error) {
-        if (err) {
-            if (typeof err === 'string') {
-                logger.error('fail to operate lifecycle, method: %s, err: %j', method, err);
-            } else {
-                logger.error('fail to operate lifecycle, method: %s, err: %j', method, err.stack);
-            }
-        }
-        utils.invokeCallback(cb, err);
-    });
-}
+// export function optLifecycles(comps: ILifeCycle[], method: string, app: Application, cb: (err?: Error) => void, arg2 ?: any) {
+//     let i = 0;
+//     async.forEachSeries(comps, function (comp, done) {
+//         i++;
+//         if (typeof (comp as any)[method] === 'function') {
+//             (comp as any)[method](app , done , arg2);
+//         } else {
+//             done();
+//         }
+//     }, function (err: Error) {
+//         if (err) {
+//             if (typeof err === 'string') {
+//                 logger.error('fail to operate lifecycle, method: %s, err: %j', method, err);
+//             } else {
+//                 logger.error('fail to operate lifecycle, method: %s, err: %j', method, err.stack);
+//             }
+//         }
+//         utils.invokeCallback(cb, err);
+//     });
+// }
 
 
 /**

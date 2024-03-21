@@ -53,7 +53,7 @@ export class UDPConnector extends EventEmitter implements IConnector {
         this.port = port;
     }
 
-    start(cb: () => void) {
+    async start() {
         let self = this;
         this.tcpServer = net.createServer();
         this.socket = dgram.createSocket(this.type, function (msg, peer) {
@@ -95,16 +95,14 @@ export class UDPConnector extends EventEmitter implements IConnector {
 
         this.socket.bind(this.port, this.host);
         this.tcpServer.listen(this.port);
-        process.nextTick(cb);
     }
 
     decode = coder.decode;
 
     encode = coder.encode;
 
-    stop(force: boolean, cb: () => void) {
+    async stop(force: boolean) {
         this.socket.close();
-        process.nextTick(cb);
     }
 }
 

@@ -28,8 +28,8 @@ export class PushSchedulerComponent implements IComponent {
      * @param {Function} cb
      * @return {Void}
      */
-    afterStart(cb: () => void) {
-        this.scheduler.start().then(cb);
+    afterStart() {
+        return this.scheduler.start();
     }
 
     /**
@@ -38,8 +38,8 @@ export class PushSchedulerComponent implements IComponent {
      * @param {Function} cb
      * @return {Void}
      */
-    stop(force: boolean, cb: () => void) {
-        this.scheduler.stop().then(cb);
+    stop(force: boolean) {
+        return this.scheduler.stop();
     }
 
     /**

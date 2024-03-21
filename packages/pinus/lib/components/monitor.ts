@@ -16,12 +16,20 @@ export class MonitorComponent implements IComponent {
     }
 
     name = '__monitor__';
-    start(cb: () => void) {
-        this.monitor.start(cb);
+    start() {
+        return new Promise<void>((resolve, reject) => {
+            this.monitor.start(err => {
+                if (err) {
+                    reject(err);
+                } else resolve();
+            });
+        });
     }
 
-    stop(force: boolean, cb: () => void) {
-        this.monitor.stop(cb);
+    stop(force: boolean) {
+        return new Promise<void>((resolve) => {
+            this.monitor.stop(resolve);
+        });
     }
 
     reconnect(masterInfo: MasterInfo) {

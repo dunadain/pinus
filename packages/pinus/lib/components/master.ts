@@ -23,8 +23,14 @@ export class MasterComponent implements IComponent {
      * @param  {Function} cb
      * @return {Void}
      */
-    start(cb: (err?: Error) => void) {
-        this.master.start(cb);
+    start() {
+        return new Promise<void>((resolve, reject) => {
+            this.master.start(err => {
+                if (err) {
+                    reject(err);
+                } else resolve();
+            });
+        });
     }
 
     /**
@@ -34,8 +40,10 @@ export class MasterComponent implements IComponent {
      * @param  {Function}  cb
      * @return {Void}
      */
-    stop(force: boolean, cb: (err?: Error) => void) {
-        this.master.stop(cb);
+    stop(force: boolean) {
+        return new Promise<void>((resolve) => {
+            this.master.stop(resolve);
+        });
     }
 
 }

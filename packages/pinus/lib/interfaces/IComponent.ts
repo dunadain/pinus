@@ -8,7 +8,7 @@ export interface IComponent {
      * @param {Function} cb
      * @return {Void}
      */
-    beforeStart?: (cb: () => void) => void;
+    beforeStart?():Promise<void>;
 
     /**
      * Component lifecycle callback
@@ -16,7 +16,7 @@ export interface IComponent {
      * @param {Function} cb
      * @return {Void}
      */
-    start ?: (cb: () => void) => void;
+    start?():Promise<void>;
 
     /**
      * Component lifecycle callback
@@ -24,7 +24,7 @@ export interface IComponent {
      * @param {Function} cb
      * @return {Void}
      */
-    afterStart?: (cb: () => void) => void;
+    afterStart?():Promise<void>;
 
     /**
      * Component lifecycle callback
@@ -34,7 +34,7 @@ export interface IComponent {
      *
      * @return {Void}
      */
-    afterStartAll ?: () => void;
+    afterStartAll?():void;
 
     /**
      * Component lifecycle function
@@ -43,5 +43,5 @@ export interface IComponent {
      * @param {Function}  cb
      * @return {Void}
      */
-    stop?: (force: boolean, cb: () => void) => void;
+    stop?(force: boolean):Promise<void>;
 }

@@ -9,8 +9,8 @@ export type IEncoder = (reqId: number, route: string, msg: any) =>
 export type IDecoder = (msg: any) => { id: number, route: string, body: any };
 
 export interface IConnector {
-    start(cb: () => void): void;
-    stop(force: boolean, cb: () => void): void;
+    start(): Promise<void>;
+    stop(force: boolean): Promise<void>;
     encode ?: IEncoder;
 
     decode ?: IDecoder;

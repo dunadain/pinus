@@ -51,7 +51,7 @@ export class DictionaryComponent implements IComponent {
     }
 
 
-    start(cb: () => void) {
+    async start() {
         let servers = this.app.get('servers');
         let routes = [];
         if (!this.ignoreAutoRouter) {
@@ -103,7 +103,6 @@ export class DictionaryComponent implements IComponent {
         }
 
         this.version = crypto.createHash('md5').update(JSON.stringify(this.dict)).digest('base64');
-        process.nextTick(cb);
     }
 
     getDict() {

@@ -66,29 +66,29 @@ describe('application test', function () {
       this.timeout(8000)
       let mockComponent = {
         name : 'mockComponent',
-        start: function (cb: Function) {
+        start: function () {
           console.log('start invoked');
           startCount++;
-          cb();
+          return Promise.resolve();
         },
 
-        afterStart: function (cb: Function) {
+        afterStart: function () {
           console.log('afterStart invoked');
           afterStartCount++;
-          cb();
+          return Promise.resolve();
         },
 
-        stop: function (force: any, cb: Function) {
+        stop: function (force: any) {
           console.log('stop invoked');
           stopCount++;
-          cb();
+          return Promise.resolve();
         }
       };
 
       app.init({ base: mockBase });
-      app.components.__monitor__ = { monitor: null, name: 'mockMonitor', start: () => {}, stop: () => {}, reconnect: () => {} };
+      app.components.__monitor__ = { monitor: null, name: 'mockMonitor', start: () => {return Promise.resolve()}, stop: () => {return Promise.resolve()}, reconnect: () => {} };
       app.load(mockComponent);
-      app.start(function (err: Error) {
+      app.start().catch(err => {
         should.not.exist(err);
       });
 
@@ -561,11 +561,11 @@ describe('application test', function () {
       let count = 0;
       this.timeout(8888)
       app.init({ base: mockBase });
-      app.components.__monitor__ = { monitor: null, name: 'mockMonitor', start: () => {}, stop: () => {}, reconnect: () => {} };
+      app.components.__monitor__ = { monitor: null, name: 'mockMonitor', start: () => {return Promise.resolve()}, stop: () => {return Promise.resolve()}, reconnect: () => {} };
       app.beforeStopHook(function () {
         count++;
       });
-      app.start(function (err: Error) {
+      app.start().catch(err => {
         should.not.exist(err);
       });
 

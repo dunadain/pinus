@@ -46,6 +46,7 @@ import { ApplicationEventContructor, IPlugin } from './interfaces/IPlugin';
 import { Cron, ResponseErrorHandler } from './server/server';
 import { RemoterProxy } from './util/remoterHelper';
 import { FrontendOrBackendSession, ISession, MonitorOptions, ScheduleOptions, SID, UID } from './index';
+import * as starter from './master/starter';
 
 let logger = getLogger('pinus', path.basename(__filename));
 
@@ -507,48 +508,46 @@ export class Application {
      * @param  {Function} cb callback function
      * @memberOf Application
      */
-    start(cb ?: (err ?: Error, result ?: void) => void) {
+    async start() {
         this.startTime = Date.now();
         if (this.state > STATE_INITED) {
-            utils.invokeCallback(cb, new Error('application has already start.'));
-            return;
+            return Promise.reject('application has already start.');
         }
 
-        let self = this;
-        appUtil.startByType(self, function () {
-            appUtil.loadDefaultComponents(self);
-            let startUp = function () {
-                self.state = STATE_BEFORE_START;
-                logger.info('%j enter before start...', self.getServerId());
-
-                appUtil.optComponents(self.loaded, Constants.RESERVED.BEFORE_START, function (err) {
-                    if (err) {
-                        utils.invokeCallback(cb, err);
-                    } else {
-                        logger.info('%j enter start...', self.getServerId());
-
-                        appUtil.optComponents(self.loaded, Constants.RESERVED.START, function (err) {
-                            self.state = STATE_START;
-                            if (err) {
-                                utils.invokeCallback(cb, err);
-                            } else {
-                                logger.info('%j enter after start...', self.getServerId());
-                                self.afterStart(cb);
-                            }
-                        });
-                    }
-                });
-
-            };
-
-            appUtil.optLifecycles(self.usedPlugins, Constants.LIFECYCLE.BEFORE_STARTUP, self, function (err) {
-                if (err) {
-                    utils.invokeCallback(cb, err);
-                } else {
-                    startUp();
+        // by elendil
+        if (!!this.startId) {
+            if (this.startId !== Constants.RESERVED.MASTER) {
+                starter.runServers(this);
+                return;
+            }
+        } else {
+            if (!!this.type && this.type !== Constants.RESERVED.ALL && this.type !== Constants.RESERVED.MASTER) {
+                starter.runServers(this);
+                return;
+            }
+        }
+        appUtil.loadDefaultComponents(this);
+        // call plugin beforestart
+        for (let i = 0; i < this.usedPlugins.length; ++i) {
+            const plugin = this.usedPlugins[i];
+            if (typeof plugin.beforeStartup === 'function') {
+                try {
+                    await plugin.beforeStartup(this)
+                } catch (e) {
+                    logger.error(e);
                 }
-            });
-        });
+            }
+        }
+
+        this.state = STATE_BEFORE_START;
+        logger.info('%j enter before start...', this.getServerId());
+        await appUtil.optComponents(this.loaded, Constants.RESERVED.BEFORE_START);
+        logger.info('%j enter start...', this.getServerId());
+        await appUtil.optComponents(this.loaded, Constants.RESERVED.START);
+        this.state = STATE_START;
+        logger.info('%j enter after start...', this.getServerId());
+        await this.afterStart();
+        // by elendil
     }
 
     /**
@@ -557,26 +556,27 @@ export class Application {
      * @param  {Function} cb callback function
      * @return {Void}
      */
-    afterStart(cb ?: (err?: Error) => void) {
+    async afterStart() {
         if (this.state !== STATE_START) {
-            utils.invokeCallback(cb, new Error('application is not running now.'));
-            return;
+            return Promise.reject('application is not running now.');
         }
-
-        let self = this;
-        appUtil.optComponents(this.loaded, Constants.RESERVED.AFTER_START, function (err) {
-            self.state = STATE_STARTED;
-            let id = self.getServerId();
-            if (!err) {
-                logger.info('%j finish start', id);
+        await appUtil.optComponents(this.loaded, Constants.RESERVED.AFTER_START);
+        this.state = STATE_STARTED;
+        let id = this.getServerId();
+        logger.info('%j finish start', id);
+        for (let i = 0; i < this.usedPlugins.length; ++i) {
+            const plugin = this.usedPlugins[i];
+            if (typeof plugin.afterStartup === 'function') {
+                try {
+                    await plugin.afterStartup(this)
+                } catch (e) {
+                    logger.error(e);
+                }
             }
-            appUtil.optLifecycles(self.usedPlugins, Constants.LIFECYCLE.AFTER_STARTUP, self, function (err?: Error) {
-                let usedTime = Date.now() - self.startTime;
-                logger.info('%j startup in %s ms', id, usedTime);
-                self.event.emit(events.START_SERVER, id);
-                cb && cb(err);
-            });
-        });
+        }
+        let usedTime = Date.now() - this.startTime;
+        logger.info('%j startup in %s ms', id, usedTime);
+        this.event.emit(events.START_SERVER, id);
     }
 
     /**
@@ -584,7 +584,7 @@ export class Application {
      *
      * @param  {Boolean} force whether stop the app immediately
      */
-    stop(force: boolean) {
+    async stop(force: boolean) {
         if (this.state > STATE_STARTED) {
             logger.warn('[pinus application] application is not running now.');
             return;
@@ -610,18 +610,33 @@ export class Application {
             });
         };
         let fun = this.get(Constants.KEYWORDS.BEFORE_STOP_HOOK);
-
-        appUtil.optLifecycles(self.usedPlugins, Constants.LIFECYCLE.BEFORE_SHUTDOWN, self, function (err) {
-            if (err) {
-                console.error(`throw err when beforeShutdown `, err.stack);
-            } else {
-                if (!!fun) {
-                    utils.invokeCallback(fun, self, shutDown, cancelShutDownTimer);
-                } else {
-                    shutDown();
+        for (let i = 0; i < this.usedPlugins.length; ++i) {
+            const plugin = this.usedPlugins[i];
+            if (typeof plugin.beforeShutdown === 'function') {
+                try {
+                    await plugin.beforeShutdown(this, cancelShutDownTimer);
+                } catch (e) {
+                    console.error(`throw err when beforeShutdown `, e.stack);
                 }
             }
-        }, cancelShutDownTimer);
+        }
+        if (!!fun) {
+            utils.invokeCallback(fun, self, shutDown, cancelShutDownTimer);
+        } else {
+            shutDown();
+        }
+
+        // appUtil.optLifecycles(self.usedPlugins, Constants.LIFECYCLE.BEFORE_SHUTDOWN, self, function (err) {
+        //     if (err) {
+        //         console.error(`throw err when beforeShutdown `, err.stack);
+        //     } else {
+        //         if (!!fun) {
+        //             utils.invokeCallback(fun, self, shutDown, cancelShutDownTimer);
+        //         } else {
+        //             shutDown();
+        //         }
+        //     }
+        // }, cancelShutDownTimer);
     }
 
     /**

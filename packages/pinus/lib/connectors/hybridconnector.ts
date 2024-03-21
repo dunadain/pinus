@@ -78,7 +78,7 @@ export class HybridConnector extends EventEmitter implements IConnector {
     /**
      * Start connector to listen the specified port
      */
-    start(cb: () => void) {
+    async start() {
         let app = pinus.app;
         let self = this;
 
@@ -117,15 +117,11 @@ export class HybridConnector extends EventEmitter implements IConnector {
         } else {
             this.listeningServer.listen(this.port);
         }
-
-        process.nextTick(cb);
     }
 
-    stop(force: boolean, cb: () => void) {
+    async stop(force: boolean) {
         this.switcher.close();
         this.listeningServer.close();
-
-        process.nextTick(cb);
     }
     decode = coder.decode;
 

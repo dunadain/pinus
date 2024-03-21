@@ -38,7 +38,7 @@ export class SIOConnector extends EventEmitter implements IConnector {
     /**
      * Start connector to listen the specified port
      */
-    start(cb: () => void) {
+    async start() {
         let self = this;
         // issue https://github.com/NetEase/pinus-cn/issues/174
         let opts: SIOConnectorOptions;
@@ -69,16 +69,13 @@ export class SIOConnector extends EventEmitter implements IConnector {
                 siosocket.send({ route: 'onKick', reason: reason });
             });
         });
-
-        process.nextTick(cb);
     }
 
     /**
      * Stop connector
      */
-    stop(force: boolean, cb: () => void) {
+    async stop(force: boolean) {
         this.server.close();
-        process.nextTick(cb);
     }
 
     encode(reqId: number, route: string, msg: any) {

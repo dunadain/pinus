@@ -18,15 +18,14 @@ export class NestComponent implements IComponent {
     /**
      * 组件开始
      */
-    start(cb) {
-        cb();
+    start() {
+        return Promise.resolve();
     }
 
-    beforeStart(cb) {
-        this.bootstrap().then(async result => {
-            this.app.set('nestjs', result);
-            cb();
-        })
+    async beforeStart() {
+        const result_1 = await this.bootstrap();
+        this.app.set('nestjs', result_1);
+        return await Promise.resolve();
     }
 
 
@@ -34,9 +33,8 @@ export class NestComponent implements IComponent {
      * 组件结束
      * @param cb
      */
-    afterStart(cb) {
-        process.nextTick(cb);
-
+    afterStart() {
+        return Promise.resolve();
     }
 
     // 热更新. 只是示例 需要根据自己的逻辑处理自己的逻辑
@@ -51,11 +49,7 @@ export class NestComponent implements IComponent {
 
 
         // 生成新的nestapp
-        await new Promise((resolve) => {
-            this.beforeStart(() => {
-                resolve(null)
-            })
-        })
+        await this.beforeStart();
 
         // 热更新框架
         console.log(this.app.getServerId(), 'logic hot update  handler')

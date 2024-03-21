@@ -42,7 +42,7 @@ export class MQTTConnector extends EventEmitter implements IConnector {
     /**
      * Start connector to listen the specified port
      */
-    start(cb: () => void) {
+    async start() {
         let self = this;
         this.server = new net.Server();
         this.server.listen(this.port);
@@ -94,12 +94,9 @@ export class MQTTConnector extends EventEmitter implements IConnector {
                 self.emit('connection', mqttsocket);
             });
         });
-
-
-        process.nextTick(cb);
     }
 
-    stop() {
+    async stop() {
         this.server.close();
         process.exit(0);
     }

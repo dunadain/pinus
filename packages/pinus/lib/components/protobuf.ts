@@ -198,11 +198,10 @@ export class ProtobufComponent implements IComponent {
         this.watchers[type] = fs.watch(path, this.onUpdate.bind(this, type, path));
     }
 
-    stop(force: boolean, cb: () => void) {
+    async stop(force: boolean) {
         for (let type in this.watchers) {
             this.watchers[type].close();
         }
         this.watchers = {};
-        process.nextTick(cb);
     }
 }

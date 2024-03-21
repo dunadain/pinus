@@ -87,11 +87,10 @@ export class RemoteComponent implements IComponent {
      * @param {Function} cb
      * @return {Void}
      */
-    start(cb: () => void) {
+    async start() {
         this.opts.port = this.app.getCurServer().port;
         this.remote = this.genRemote(this.opts);
         this.remote.start();
-        process.nextTick(cb);
     }
 
     /**
@@ -101,9 +100,8 @@ export class RemoteComponent implements IComponent {
      * @param {Function}  cb
      * @return {Void}
      */
-    stop(force: boolean, cb: () => void) {
+    async stop(force: boolean) {
         this.remote.stop(force);
-        process.nextTick(cb);
     }
 
     /**

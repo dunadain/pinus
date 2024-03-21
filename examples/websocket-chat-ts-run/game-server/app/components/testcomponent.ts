@@ -10,13 +10,13 @@ export class TestComponent implements IComponent {
         this.app.set(this.name, this)
     }
 
-    start(cb: () => void) {
+    start() {
         console.log("TestComponent  start", this.app.getServerId())
-        cb()
+        return Promise.resolve();
     }
 
-    stop(force: boolean, cb: () => void) {
+    stop(force: boolean) {
         console.log("TestComponent stop", force, this.app.getServerId())
-        cb()
+        return Promise.resolve();
     }
 }

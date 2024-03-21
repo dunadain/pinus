@@ -70,7 +70,7 @@ export class ProxyComponent implements IComponent {
      * @param {Function} cb
      * @return {Void}
      */
-    start(cb: (err?: Error) => void) {
+    async start() {
         if (this.opts.enableRpcLog) {
             logger.warn('enableRpcLog is deprecated in 0.8.0, please use app.rpcFilter(pinus.rpcFilters.rpcLog())');
         }
@@ -87,7 +87,6 @@ export class ProxyComponent implements IComponent {
         if (!!rpcErrorHandler) {
             this.client.setErrorHandler(rpcErrorHandler);
         }
-        process.nextTick(cb);
     }
 
     /**
@@ -96,7 +95,7 @@ export class ProxyComponent implements IComponent {
      * @param {Function} cb
      * @return {Void}
      */
-    afterStart(cb: (err?: Error) => void) {
+    afterStart() {
         let self = this;
 
         Object.defineProperty(this.app, 'rpc', {
@@ -111,8 +110,12 @@ export class ProxyComponent implements IComponent {
             }
         });
         this.app.rpcInvoke = this.client.rpcInvoke.bind(this.client);
-
-        this.client.start(cb);
+        return new Promise<void>((resolve, reject) => {
+            this.client.start(err => {
+                if (err) reject(err);
+                else resolve();
+            });
+        });
     }
 
     /**

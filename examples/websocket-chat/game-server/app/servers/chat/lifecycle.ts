@@ -6,22 +6,19 @@ export default function () {
 
 
 class Lifecycle implements ILifeCycle {
-    beforeStartup(app: Application, cb: () => void): void {
+    async beforeStartup(app: Application) {
         console.log(app.getServerId(), '!!!before startup');
-        cb();
     }
 
-    afterStartup(app: Application, cb: () => void): void {
+    async afterStartup(app: Application) {
         console.log(app.getServerId(), '!!afterStartup');
-        cb();
     }
 
     afterStartAll(app: Application): void {
         console.log(app.getServerId(), '!!after start all');
     }
 
-    beforeShutdown(app: Application, shutDown: () => void, cancelShutDownTimer: () => void) {
+    async beforeShutdown(app: Application, cancelShutDownTimer: () => void) {
         console.log(app.getServerId(), '!!beforeShutdown');
-        shutDown();
     }
 }

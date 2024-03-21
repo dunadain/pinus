@@ -52,8 +52,10 @@ export class ChannelService implements IComponent {
     }
 
 
-    start(cb: (err?: Error) => void) {
-        restoreChannel(this, cb);
+    start() {
+        return new Promise<void>(resolve => {
+            restoreChannel(this, resolve);
+        });
     }
 
 

@@ -26,9 +26,8 @@ export class ServerComponent  implements IComponent {
      * @param {Function} cb
      * @return {Void}
      */
-    start(cb: () => void) {
+    async start() {
         this.server.start();
-        process.nextTick(cb);
     }
 
     /**
@@ -37,9 +36,8 @@ export class ServerComponent  implements IComponent {
      * @param {Function} cb
      * @return {Void}
      */
-    afterStart(cb: () => void) {
+    async afterStart() {
         this.server.afterStart();
-        process.nextTick(cb);
     }
 
 
@@ -50,9 +48,8 @@ export class ServerComponent  implements IComponent {
      * @param {Function}  cb
      * @return {Void}
      */
-    stop(force: boolean, cb: () => void) {
+    async stop(force: boolean) {
         this.server.stop();
-        process.nextTick(cb);
     }
 
     /**

@@ -95,41 +95,30 @@ export class ConnectorComponent implements IComponent {
 
     name = '__connector__';
 
-    start(cb: () => void) {
+    async start() {
         this.server = this.app.components.__server__;
         this.session = this.app.components.__session__;
         this.connection = this.app.components.__connection__;
 
         // check component dependencies
         if (!this.server) {
-            process.nextTick(function () {
-                utils.invokeCallback(cb, new Error('fail to start connector component for no server component loaded'));
-            });
-            return;
+            throw new Error('fail to start connector component for no server component loaded');
         }
 
         if (!this.session) {
-            process.nextTick(function () {
-                utils.invokeCallback(cb, new Error('fail to start connector component for no session component loaded'));
-            });
-            return;
+            throw new Error('fail to start connector component for no session component loaded');
         }
-
-        process.nextTick(cb);
     }
 
-    afterStart(cb: () => void) {
-        this.connector.start(cb);
+    async afterStart() {
+        await this.connector.start();
         this.connector.on('connection', this.hostFilter.bind(this, this.bindEvents.bind(this)));
     }
 
-    stop(force: boolean, cb: () => void) {
+    async stop(force: boolean) {
         if (this.connector) {
-            this.connector.stop(force, cb);
+            await this.connector.stop(force);
             this.connector = null;
-            return;
-        } else {
-            process.nextTick(cb);
         }
     }
 
