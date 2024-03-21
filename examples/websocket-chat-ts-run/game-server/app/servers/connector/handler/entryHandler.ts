@@ -33,7 +33,7 @@ export class EntryHandler {
             };
         }
 
-        await session.abind(uid);
+        session.abind(uid);
         session.set('rid', rid);
         session.push('rid', function (err) {
             if (err) {

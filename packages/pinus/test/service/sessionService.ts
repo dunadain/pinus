@@ -23,19 +23,26 @@ describe('session service test', function () {
         eventCount++;
         uid.should.equal(euid);
       });
-
-      service.bind(sid, uid, function (err: Error) {
-        should.not.exist(err);
-        let sessions = service.getByUid(uid);
-        should.exist(sessions);
-        sessions.length.should.equal(1);
-        session.should.eql(sessions[0]);
-        eventCount.should.equal(1);
-        service.bind(sid, uid, function (err: Error) {
-          should.not.exist(err);
-          done();
-        });
-      });
+      let err;
+      try {
+        service.bind(sid, uid);
+      } catch (e) {
+        err = e;
+      }
+      should.not.exist(err);
+      let sessions = service.getByUid(uid);
+      should.exist(sessions);
+      sessions.length.should.equal(1);
+      session.should.eql(sessions[0]);
+      eventCount.should.equal(1);
+      err = undefined;
+      try {
+        service.bind(sid, uid);
+      } catch (e) {
+        err = e;
+      }
+      should.not.exist(err);
+      done();
     });
     it('should fail if already binded uid', function (done: Mocha.Done) {
       let service = new SessionService();
@@ -44,21 +51,29 @@ describe('session service test', function () {
 
       let session = service.create(sid, fid, socket);
 
-      service.bind(sid, uid, null);
+      service.bind(sid, uid);
 
-      service.bind(sid, test_uid, function (err: Error) {
-        should.exist(err);
-        done();
-      });
+      let err;
+      try {
+        service.bind(sid, test_uid);
+      } catch (e) {
+        err = e;
+      }
+      should.exist(err);
+      done();
     });
     it('should fail if try to bind a session not exist', function (done: Mocha.Done) {
       let service = new SessionService();
       let sid = 1, uid = 'changchang';
 
-      service.bind(sid, uid, function (err: Error) {
-        should.exist(err);
-        done();
-      });
+      let err;
+      try {
+        service.bind(sid, uid);
+      } catch (e) {
+        err = e;
+      }
+      should.exist(err);
+      done();
     });
   });
 
@@ -68,10 +83,14 @@ describe('session service test', function () {
       let sid = 1;
       let uid = 'py';
 
-      service.unbind(sid, uid, function (err: Error) {
-        should.exist(err);
-        done();
-      });
+      let err;
+      try {
+        service.unbind(sid, uid);
+      } catch (error) {
+        err = error;
+      }
+      should.exist(err);
+      done();
     });
     it('should fail unbind session if session not binded', function (done: Mocha.Done) {
       let service = new SessionService();
@@ -79,11 +98,14 @@ describe('session service test', function () {
       let uid = 'py';
 
       let session = service.create(sid, fid, socket);
-
-      service.unbind(sid, uid, function (err: Error) {
-        should.exist(err);
-        done();
-      });
+      let err;
+      try {
+        service.unbind(sid, uid);
+      } catch (error) {
+        err = error;
+      }
+      should.exist(err);
+      done();
     });
     it('should fail to get session after session unbinded', function (done: Mocha.Done) {
       let service = new SessionService();
@@ -91,14 +113,17 @@ describe('session service test', function () {
       let uid = 'py';
 
       let session = service.create(sid, fid, socket);
-      service.bind(sid, uid, null);
-
-      service.unbind(sid, uid, function (err: Error) {
-        should.not.exist(err);
-        let sessions = service.getByUid(uid);
-        should.not.exist(sessions);
-        done();
-      });
+      service.bind(sid, uid);
+      let err;
+      try {
+        service.unbind(sid, uid);
+      } catch (error) {
+        err = error;
+      }
+      should.not.exist(err);
+      let sessions = service.getByUid(uid);
+      should.not.exist(sessions);
+      done();
     });
   });
 
@@ -110,12 +135,11 @@ describe('session service test', function () {
 
       let session = service.create(sid, fid, socket);
 
-      service.bind(sid, uid, function (err: Error) {
-        service.remove(sid);
-        should.not.exist(service.get(sid));
-        should.not.exist(service.getByUid(uid));
-        done();
-      });
+      service.bind(sid, uid);
+      service.remove(sid);
+      should.not.exist(service.get(sid));
+      should.not.exist(service.getByUid(uid));
+      done();
     });
   });
 
@@ -213,18 +237,20 @@ describe('session service test', function () {
         eventCount++;
       });
 
-      service.bind(sid1, uid, function (err: Error) {
-        service.bind(sid2, uid, function (err: Error) {
-          service.kick(uid, null, function (err: Error) {
-            should.not.exist(err);
-            should.not.exist(service.get(sid1));
-            should.not.exist(service.get(sid2));
-            should.not.exist(service.getByUid(uid));
-            eventCount.should.equal(2);
-            done();
-          });
-        });
-      });
+      service.bind(sid1, uid);
+      service.bind(sid2, uid);
+      let err;
+      try {
+        service.kick(uid);
+      } catch (error) {
+        err = error;
+      }
+      should.not.exist(err);
+      should.not.exist(service.get(sid1));
+      should.not.exist(service.get(sid2));
+      should.not.exist(service.getByUid(uid));
+      eventCount.should.equal(2);
+      done();
     });
 
     it('should kick the session by sessionId', function (done: Mocha.Done) {
@@ -249,28 +275,34 @@ describe('session service test', function () {
         eventCount++;
       });
 
-      service.bind(sid1, uid, function (err: Error) {
-        service.bind(sid2, uid, function (err: Error) {
-          service.kickBySessionId(sid1, null, function (err: Error) {
-            should.not.exist(err);
-            should.not.exist(service.get(sid1));
-            should.exist(service.get(sid2));
-            should.exist(service.getByUid(uid));
-            eventCount.should.equal(1);
-            done();
-          });
-        });
-      });
+      service.bind(sid1, uid);
+      service.bind(sid2, uid);
+      let err;
+      try {
+        service.kickBySessionId(sid1);
+      } catch (error) {
+        err = error;
+      }
+      should.not.exist(err);
+      should.not.exist(service.get(sid1));
+      should.exist(service.get(sid2));
+      should.exist(service.getByUid(uid));
+      eventCount.should.equal(1);
+      done();
     });
 
     it('should ok if kick a session not exist', function (done: Mocha.Done) {
       let service = new SessionService();
       let uid = 'changchang';
 
-      service.kick(uid, null, function (err: Error) {
-        should.not.exist(err);
-        done();
-      });
+      let err;
+      try {
+        service.kick(uid);
+      } catch (e) {
+        err = e;
+      }
+      should.not.exist(err);
+      done();
     });
 
     it('should kick session by sid', function (done: Mocha.Done) {
@@ -287,22 +319,30 @@ describe('session service test', function () {
         eventCount++;
       });
 
-      service.kickBySessionId(sid, null, function (err: Error) {
-        should.not.exist(err);
-        should.not.exist(service.get(sid));
-        eventCount.should.equal(1);
-        done();
-      });
+      let err;
+      try {
+        service.kickBySessionId(sid);
+      } catch (e) {
+        err = e;
+      }
+      should.not.exist(err);
+      should.not.exist(service.get(sid));
+      eventCount.should.equal(1);
+      done();
     });
 
     it('should ok if kick a session not exist', function (done: Mocha.Done) {
       let service = new SessionService();
       let sid = 1;
 
-      service.kickBySessionId(sid, null, function (err: Error) {
-        should.not.exist(err);
-        done();
-      });
+      let err;
+      try {
+        service.kickBySessionId(sid);
+      } catch (e) {
+        err = e;
+      }
+      should.not.exist(err);
+      done();
     });
   });
 
@@ -329,7 +369,7 @@ describe('session service test', function () {
       let uid = 'py';
 
       let outter_session = service.create(sid, fid, socket);
-      service.bind(sid, uid, null);
+      service.bind(sid, uid);
 
       service.forEachBindedSession(function (session: any) {
         should.exist(session);
@@ -358,16 +398,20 @@ describe('frontend session test', function () {
         eventCount++;
         uid.should.equal(euid);
       });
-
-      fsession.bind(uid, function (err: Error) {
-        should.not.exist(err);
-        let sessions = service.getByUid(uid);
-        should.exist(sessions);
-        sessions.length.should.equal(1);
-        session.should.eql(sessions[0]);
-        eventCount.should.equal(1);
-        done();
-      });
+      
+      let err;
+      try {
+        fsession.bind(uid);
+      } catch (e) {
+        err = e;
+      }
+      should.not.exist(err);
+      let sessions = service.getByUid(uid);
+      should.exist(sessions);
+      sessions.length.should.equal(1);
+      session.should.eql(sessions[0]);
+      eventCount.should.equal(1);
+      done();
     });
   });
 
@@ -380,13 +424,17 @@ describe('frontend session test', function () {
       let session = service.create(sid, fid, socket);
       let fsession = session.toFrontendSession();
 
-      fsession.bind(uid, null);
-      fsession.unbind(uid, function (err: Error) {
-        should.not.exist(err);
-        let sessions = service.getByUid(uid);
-        should.not.exist(sessions);
-        done();
-      });
+      fsession.bind(uid);
+      let err;
+      try {
+        fsession.unbind(uid);
+      } catch (error) {
+        err = error;
+      }
+      should.not.exist(err);
+      let sessions = service.getByUid(uid);
+      should.not.exist(sessions);
+      done();
     });
   });
 
