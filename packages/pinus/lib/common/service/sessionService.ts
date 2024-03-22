@@ -369,10 +369,10 @@ export class SessionService {
     }
 
 
-    akick: (uid: UID, reason?: string) => Promise<void> = utils.promisify(this.kick.bind(this));
-    akickBySessionId: (sid: SID, reason?: string) => Promise<void> = utils.promisify(this.kickBySessionId.bind(this));
-    abind: (sid: SID, uid: UID) => Promise<void> = utils.promisify(this.bind.bind(this));
-    aunbind: (sid: SID, uid: UID) => Promise<void> = utils.promisify(this.unbind.bind(this));
+    // akick: (uid: UID, reason?: string) => Promise<void> = utils.promisify(this.kick.bind(this));
+    // akickBySessionId: (sid: SID, reason?: string) => Promise<void> = utils.promisify(this.kickBySessionId.bind(this));
+    // abind: (sid: SID, uid: UID) => Promise<void> = utils.promisify(this.bind.bind(this));
+    // aunbind: (sid: SID, uid: UID) => Promise<void> = utils.promisify(this.unbind.bind(this));
     aimport: (sid: SID, key: string, value: any) => Promise<void> = utils.promisify(this.import.bind(this));
     aimportAll: (sid: SID, settings: any) => Promise<void> = utils.promisify(this.importAll.bind(this));
 }

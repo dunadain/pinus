@@ -1174,7 +1174,7 @@ export class Application {
         this.event.emit(events.REMOVE_CRONS, crons);
     }
 
-    astart = utils.promisify(this.start);
+    // astart = utils.promisify(this.start);
     aconfigure: AConfigureFunc1 | AConfigureFunc2 | AConfigureFunc3 = utils.promisify(this.configure) as any;
 
     rpc ?: UserRpc;

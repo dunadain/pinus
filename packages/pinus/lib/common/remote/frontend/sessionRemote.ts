@@ -19,11 +19,11 @@ export class SessionRemote {
     }
 
     bind(sid: SID, uid: UID) {
-        return this.app.sessionService.abind(sid, uid);
+        this.app.sessionService.bind(sid, uid);
     }
 
     unbind(sid: SID, uid: UID) {
-        return this.app.sessionService.aunbind(sid, uid);
+        this.app.sessionService.unbind(sid, uid);
     }
 
     push(sid: SID, key: string, value: any) {
@@ -75,7 +75,7 @@ export class SessionRemote {
      * @param  {Function} cb  callback function
      */
     kickBySid(sid: SID, reason: string) {
-        this.app.sessionService.akickBySessionId(sid, reason);
+        this.app.sessionService.kickBySessionId(sid, reason);
     }
 
     /**
