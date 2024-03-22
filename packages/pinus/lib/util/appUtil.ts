@@ -30,21 +30,21 @@ export function defaultConfiguration(app: Application) {
 /**
  * Start servers by type.
  */
-export function startByType(app: Application, cb: (err?: Error) => void) {
-    if (!!app.startId) {
-        if (app.startId === Constants.RESERVED.MASTER) {
-            utils.invokeCallback(cb);
-        } else {
-            starter.runServers(app);
-        }
-    } else {
-        if (!!app.type && app.type !== Constants.RESERVED.ALL && app.type !== Constants.RESERVED.MASTER) {
-            starter.runServers(app);
-        } else {
-            utils.invokeCallback(cb);
-        }
-    }
-}
+// export function startByType(app: Application, cb: (err?: Error) => void) {
+//     if (!!app.startId) {
+//         if (app.startId === Constants.RESERVED.MASTER) {
+//             utils.invokeCallback(cb);
+//         } else {
+//             starter.runServers(app);
+//         }
+//     } else {
+//         if (!!app.type && app.type !== Constants.RESERVED.ALL && app.type !== Constants.RESERVED.MASTER) {
+//             starter.runServers(app);
+//         } else {
+//             utils.invokeCallback(cb);
+//         }
+//     }
+// }
 
 /**
  * Load default components for application.
