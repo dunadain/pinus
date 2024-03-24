@@ -18,8 +18,8 @@ export enum ModuleType {
     Normal = ''
 }
 
-export type MasterCallback = (err?: string , data?: any) => void;
-export type MonitorCallback = (err?: Error , data?: any) => void;
+export type MasterCallback = (err?: Error | string | null | undefined, data?: any) => void;
+export type MonitorCallback = (err?: Error | string | null | undefined , data?: any) => void;
 
 export interface IModule {
     moduleId ?: string;

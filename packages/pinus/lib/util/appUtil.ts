@@ -116,7 +116,7 @@ export async function optComponents(comps: IComponent[], method: string) {
             try {
                 await (comp as any)[method]();
             } catch (e) {
-                logger.error(`component stage ${method} has encounter an error:${e}, stack:${e.stack}`);
+                logger.error(`component stage ${method} has encounter an error:${e}, stack:${(e as Error).stack}`);
             }
         }
     }
@@ -208,7 +208,7 @@ export interface ServerStartArgs extends ServerInfo {
  */
 let processArgs = function (app: Application, args: ServerStartArgs) {
     let serverType = args.serverType || Constants.RESERVED.MASTER;
-    let serverId = args.id || app.getMaster().id;
+    let serverId = args.id || app.getMaster()?.id;
     let mode = args.mode || Constants.RESERVED.CLUSTER;
     let masterha = args.masterha || 'false';
     let type = args.type || Constants.RESERVED.ALL;
