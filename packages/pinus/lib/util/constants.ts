@@ -134,7 +134,7 @@ export interface ServerInfo {
     host: string;
     port: number;
     clientHost?: string;
-    clientPort: number;
+    clientPort?: number;
     frontend ?: boolean;
 
     args ?: string | string[];
