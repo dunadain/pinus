@@ -322,7 +322,7 @@ export class RpcClient {
      *    {serverType: serverType, service: serviceName, method: methodName, args: arguments}
      * @param cb {Function} cb(err, ...)
      */
-    rpcInvoke(serverId: string, msg: RpcMsg, cb: (err: Error, ...args: any[]) => void) {
+    rpcInvoke(serverId: string, msg: RpcMsg, cb: (err: Error | null, ...args: any[]) => void) {
         let rpcDebugLog = this.rpcDebugLog;
         let tracer: Tracer;
 

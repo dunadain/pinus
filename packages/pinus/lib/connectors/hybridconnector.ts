@@ -88,7 +88,7 @@ export class HybridConnector extends EventEmitter implements IConnector {
             self.emit('connection', hybridsocket);
         };
 
-        this.connector = (app.components.__connector__ as ConnectorComponent).connector;
+        this.connector = (app.components.__connector__ as ConnectorComponent).connector!;
         this.dictionary = app.components.__dictionary__ as DictionaryComponent;
         this.protobuf = app.components.__protobuf__ as ProtobufComponent;
         this.decodeIO_protobuf = app.components.__decodeIO__protobuf__;

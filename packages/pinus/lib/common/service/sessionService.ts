@@ -36,7 +36,7 @@ export class SessionService {
 
     constructor(opts?: SessionServiceOptions) {
         opts = opts || {};
-        this.singleSession = opts.singleSession;
+        this.singleSession = !!opts.singleSession;
         this.sessions = {};     // sid -> session
         this.uidMap = {};       // uid -> sessions
     }
@@ -420,7 +420,7 @@ export class Session extends EventEmitter implements ISession {
         super();
         this.id = sid;          // r
         this.frontendId = frontendId; // r
-        this.uid = null;        // r
+        this.uid = '';        // r
         this.settings = {};
 
         // private
@@ -454,7 +454,7 @@ export class Session extends EventEmitter implements ISession {
      * @api private
      */
     unbind(uid: UID) {
-        this.uid = null;
+        this.uid = '';
         this.emit('unbind', uid);
     }
 
@@ -559,12 +559,12 @@ export class Session extends EventEmitter implements ISession {
  * Frontend session for frontend server.
  */
 export class FrontendSession extends EventEmitter implements ISession {
-    id: number;
-    uid: string;
-    frontendId: string;
+    id = 0;
+    uid = '';
+    frontendId = '';
     settings: { [key: string]: any; };
     private __session__: Session;
-    private __sessionService__: SessionService;
+    private __sessionService__: SessionService | undefined;
 
     constructor(session: Session) {
         super();
@@ -576,12 +576,12 @@ export class FrontendSession extends EventEmitter implements ISession {
 
 
     bind(uid: UID) {
-        this.__sessionService__.bind(this.id, uid);
+        this.__sessionService__?.bind(this.id, uid);
     }
 
     unbind(uid: UID) {
-        this.__sessionService__.unbind(this.id, uid);
-        this.uid = null;
+        this.__sessionService__?.unbind(this.id, uid);
+        this.uid = '';
     }
 
     set(key: string, value: any) {
@@ -593,11 +593,11 @@ export class FrontendSession extends EventEmitter implements ISession {
     }
 
     push(key: string, cb: (err?: Error, result?: void) => void) {
-        this.__sessionService__.import(this.id, key, this.get(key), cb);
+        this.__sessionService__?.import(this.id, key, this.get(key), cb);
     }
 
     pushAll(cb: (err?: Error, result?: void) => void) {
-        this.__sessionService__.importAll(this.id, this.settings, cb);
+        this.__sessionService__?.importAll(this.id, this.settings, cb);
     }
 
     on(event: string | symbol, listener: (...args: any[]) => void): this {

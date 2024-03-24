@@ -1180,7 +1180,7 @@ export class Application {
      * @param {Object}   msg      rpc message: {serverType: serverType, service: serviceName, method: methodName, args: arguments}
      * @param {Function} cb      callback function
      */
-    rpcInvoke ?: (serverId: FRONTENDID, msg: RpcMsg, cb: Function) => void;
+    rpcInvoke ?: (serverId: FRONTENDID, msg: RpcMsg, cb: (err: Error | null, ...args: any[]) => void) => void;
 
 
     /**

@@ -8,7 +8,7 @@ export interface BroadcastOptions {
 }
 export interface ScheduleOptions {
     type ?: 'broadcast' | 'response';
-    userOptions ?: BroadcastOptions;
+    userOptions?: BroadcastOptions;
 }
 
 export type IPushSelector = (reqId: number, route: string, msg: any, recvs: number[], opts: any) => number;
