@@ -48,5 +48,5 @@ export interface IPushScheduler {
     /**
      * 调度发生时调用
      */
-    schedule(reqId: number, route: string, msg: any, recvs: SID[], opts: ScheduleOptions, cb: (err?: Error) => void): void;
+    schedule(reqId: number, route: string, msg: any, recvs: SID[] | null, opts: ScheduleOptions, cb: (err?: Error) => void): void;
 }

@@ -123,7 +123,7 @@ export class ConnectorComponent implements IComponent {
         }
     }
 
-    send(reqId: number, route: string, msg: any, recvs: SID[], opts: ScheduleOptions, cb: (err?: Error, resp ?: any) => void) {
+    send(reqId: number, route: string, msg: any, recvs: SID[] | null, opts: ScheduleOptions, cb: (err?: Error, resp ?: any) => void) {
         logger.debug('[%s] send message reqId: %s, route: %s, msg: %j, receivers: %j, opts: %j', this.app.serverId, reqId, route, msg, recvs, opts);
         // if (this.useAsyncCoder) {
         //     return this.sendAsync(reqId, route, msg, recvs, opts, cb);
@@ -141,7 +141,7 @@ export class ConnectorComponent implements IComponent {
         this.doSend(reqId, route, emsg, recvs, opts, cb);
     }
 
-    sendAsync(reqId: number, route: string, msg: any, recvs: SID[], opts: ScheduleOptions, cb: (err?: Error, resp ?: any) => void) {
+    sendAsync(reqId: number, route: string, msg: any, recvs: SID[] | null, opts: ScheduleOptions, cb: (err?: Error, resp ?: any) => void) {
         let emsg = msg;
         let self = this;
 
@@ -176,7 +176,7 @@ export class ConnectorComponent implements IComponent {
         throw new Error('not implement sendAsync');
     }
 
-    doSend(reqId: number, route: string, emsg: any, recvs: SID[], opts: ScheduleOptions, cb: (err?: Error) => void) {
+    doSend(reqId: number, route: string, emsg: any, recvs: SID[] | null, opts: ScheduleOptions, cb: (err?: Error) => void) {
         if (!emsg) {
             process.nextTick(function () {
                 return cb && cb(new Error('fail to send message for encode result is empty.'));
@@ -521,5 +521,5 @@ let getConnector = function (app: Application, opts: any) {
 
 let getDefaultConnector = function (app: Application, opts: SIOConnectorOptions) {
     let curServer = app.getCurServer();
-    return new SIOConnector(curServer.clientPort, curServer.host, opts);
+    return new SIOConnector(curServer.clientPort!, curServer.host, opts);
 };

@@ -9,6 +9,7 @@ import {UID, SID} from '../../../util/constants';
 import {ScheduleOptions} from '../../../interfaces/IPushScheduler';
 import {Session} from '../../service/sessionService';
 import * as path from 'path';
+import { ConnectorComponent } from '../../../components/connector';
 
 let logger = getLogger('pinus', path.basename(__filename));
 
@@ -76,9 +77,9 @@ export class ChannelRemote {
      */
     broadcast(route: string, msg: any, opts: ScheduleOptions) {
         return new Promise<any>((resolve, reject) => {
-            let connector = this.app.components.__connector__;
+            let connector = this.app.components.__connector__ as ConnectorComponent;
 
-            connector.send(null, route, msg, null, opts, function (err, resp) {
+            connector.send(0, route, msg, null, opts, function (err, resp) {
                 if (err) {
                     return reject(err);
                 }

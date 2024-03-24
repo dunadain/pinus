@@ -185,7 +185,7 @@ export function manualReloadHandlers(app: Application) {
     if (!p) {
         return;
     }
-    const handlerMap: HandlerMap = (app.components.__server__ as ServerComponent).server.handlerService.handlerMap;
+    const handlerMap: HandlerMap = (app.components.__server__ as ServerComponent).server.handlerService!.handlerMap;
     const handler = Loader.load(p, app, true, true, LoaderPathType.PINUS_HANDLER);
     if (handler)
         handlerMap[app.serverType] = handler;
