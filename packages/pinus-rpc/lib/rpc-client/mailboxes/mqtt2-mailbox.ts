@@ -269,7 +269,7 @@ export class MQTT2MailBox extends EventEmitter {
 
     delete mailbox.requests[pkgId];
     let rpcDebugLog = mailbox.opts.rpcDebugLog;
-    let tracer = null;
+    let tracer:Tracer | null = null;
     let sendErr = null;
     if (rpcDebugLog) {
       tracer = new Tracer(mailbox.opts.rpcLogger, mailbox.opts.rpcDebugLog, mailbox.opts.clientId, pkg.source, pkg.resp, pkg.id, pkg.seq);

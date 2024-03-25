@@ -39,10 +39,10 @@ export class WS2Acceptor extends EventEmitter {
   sockets: { [key: string]: any };
   msgQueues: { [key: string]: any };
   cb: any;
-  inited: boolean;
+  inited = false;
   server: any;
-  closed: boolean;
-  gid: number;
+  closed = false;
+  gid = 0;
 
   constructor(opts: AcceptorOpts, cb: (tracer: Tracer, msg?: any, cb?: Function) => void) {
     super();
@@ -100,7 +100,7 @@ export class WS2Acceptor extends EventEmitter {
             self.processMsg(socket, self, msg.body);
           }
         } catch (e) {
-          console.error('ws rpc server process message with error: %j', e.stack);
+          console.error('ws rpc server process message with error: %j', (e as Error).stack);
         }
       });
 
@@ -160,7 +160,7 @@ export class WS2Acceptor extends EventEmitter {
     try {
       this.server.close();
     } catch (err) {
-      console.error('rpc server close error: %j', err.stack);
+      console.error('rpc server close error: %j', (err as Error).stack);
     }
     this.emit('closed');
   }
@@ -175,7 +175,7 @@ export class WS2Acceptor extends EventEmitter {
   };
 
   processMsg(socket: any, acceptor: WS2Acceptor, pkg: AcceptorPkg) {
-    let tracer: Tracer = null;
+    let tracer: Tracer | null = null;
     if (this.rpcDebugLog) {
       tracer = new Tracer(acceptor.rpcLogger, acceptor.rpcDebugLog, pkg.remote, pkg.source, pkg.msg, pkg.id, pkg.seq);
       tracer.info('server', __filename, 'processMsg', 'ws-acceptor receive message and try to process message');

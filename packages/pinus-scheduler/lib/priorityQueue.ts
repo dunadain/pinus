@@ -2,9 +2,9 @@
  * The PriorityQeueu class
  */
 export class PriorityQueue {
-    _comparator: Function;
-    _queue: Array<any>;
-    _tailPos: number;
+    _comparator!: Function;
+    _queue!: Array<any>;
+    _tailPos!: number;
 
     constructor(comparator: Function) {
         this.init(comparator);

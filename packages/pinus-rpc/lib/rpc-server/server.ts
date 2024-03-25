@@ -9,7 +9,7 @@ let loadRemoteServices = function (paths: Array<Gateway.RemoteServerCode>, conte
     let item: Gateway.RemoteServerCode, m: Remoters;
     for (let i = 0, l = paths.length; i < l; i++) {
         item = paths[i];
-        m = Loader.load(item.path, context, false, true, LoaderPathType.PINUS_REMOTER);
+        m = Loader.load(item.path, context, false, true, LoaderPathType.PINUS_REMOTER)!;
 
         if (m) {
             createNamespace(item.namespace, res);
@@ -41,7 +41,7 @@ export function createServer(opts: Gateway.RpcServerOpts) {
     if (!opts || !opts.port || +opts.port < 0 || !opts.paths) {
         throw new Error('opts.port or opts.paths invalid.');
     }
-    opts.services = loadRemoteServices(opts.paths, opts.context, opts.services);
+    opts.services = loadRemoteServices(opts.paths, opts.context!, opts.services!);
     return Gateway.createGateway(opts);
 }
 

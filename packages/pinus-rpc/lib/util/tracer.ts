@@ -13,13 +13,13 @@ let getModule = function (module: string) {
 export class Tracer {
     public isEnabled: boolean;
     public logger: any;
-    public source: string;
-    public remote: string;
-    public id: string;
-    public seq: number;
-    public msg: string | object;
+    public source!: string;
+    public remote!: string;
+    public id!: string;
+    public seq!: number;
+    public msg!: string | object;
 
-    constructor(logger: Logger, enabledRpcLog: boolean, source: string, remote: string, msg: string | object, id ?: string, seq ?: number) {
+    constructor(logger: Logger, enabledRpcLog: boolean, source: string, remote: string, msg: string | object, id ?: string | number, seq ?: number) {
         this.isEnabled = enabledRpcLog;
         if (!enabledRpcLog) {
             return;
@@ -27,7 +27,7 @@ export class Tracer {
         this.logger = logger;
         this.source = source;
         this.remote = remote;
-        this.id = id || uuid.v1();
+        this.id = id ? id.toString() : uuid.v1();
         this.seq = seq || 1;
         this.msg = msg;
     }

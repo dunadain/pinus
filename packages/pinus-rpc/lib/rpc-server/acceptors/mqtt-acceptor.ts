@@ -30,13 +30,13 @@ export class MQTTAcceptor extends EventEmitter implements IAcceptor {
     sockets: any;
     msgQueues: any;
     cb: AcceptorCallback;
-    inited: boolean;
-    server: net.Server;
-    closed: boolean;
+    inited = false;
+    server!: net.Server;
+    closed = false;
 
     constructor(opts: AcceptorOpts, cb: AcceptorCallback) {
         super();
-        this.interval = opts.interval; // flush interval in ms
+        this.interval = opts.interval ?? 0; // flush interval in ms
         this.bufferMsg = opts.bufferMsg;
         this.rpcLogger = opts.rpcLogger;
         this.rpcDebugLog = opts.rpcDebugLog;
@@ -89,10 +89,10 @@ export class MQTTAcceptor extends EventEmitter implements IAcceptor {
                     if (!isArray) {
                         self.doSend(socket, {
                             id: pkg.id,
-                            resp: [self.cloneError(err)]
+                            resp: [self.cloneError(err as any)]
                         });
                     }
-                    logger.error('process rpc message error %s', err.stack);
+                    logger.error('process rpc message error %s', (err as Error).stack);
                 }
             });
 
@@ -154,38 +154,40 @@ export class MQTTAcceptor extends EventEmitter implements IAcceptor {
     }
 
     processMsg(socket: object, pkg: AcceptorPkg) {
-        let tracer: Tracer = null;
+        let tracer: Tracer | null = null;
         if (this.rpcDebugLog) {
             tracer = new Tracer(this.rpcLogger, this.rpcDebugLog, pkg.remote, pkg.source, pkg.msg, pkg.id, pkg.seq);
             tracer.info('server', __filename, 'processMsg', 'mqtt-acceptor receive message and try to process message');
         }
-        this.cb(tracer, pkg.msg,  (... args: any[]) => {
-            let errorArg = args[0]; // first callback argument can be error object, the others are message
-            if (errorArg && errorArg instanceof Error) {
-                args[0] = this.cloneError(<any>errorArg);
-            }
-
-            let resp;
-            if (tracer && tracer.isEnabled) {
-                resp = {
-                    traceId: tracer.id,
-                    seqId: tracer.seq,
-                    source: tracer.source,
-                    id: pkg.id,
-                    resp: args
-                };
-            } else {
-                resp = {
-                    id: pkg.id,
-                    resp: args
-                };
-            }
-            if (this.bufferMsg) {
-                this.enqueue(socket, resp);
-            } else {
-                this.doSend(socket, resp);
-            }
-        });
+        if (tracer) {
+            this.cb(tracer, pkg.msg,  (... args: any[]) => {
+                let errorArg = args[0]; // first callback argument can be error object, the others are message
+                if (errorArg && errorArg instanceof Error) {
+                    args[0] = this.cloneError(<any>errorArg);
+                }
+    
+                let resp;
+                if (tracer && tracer.isEnabled) {
+                    resp = {
+                        traceId: tracer.id,
+                        seqId: tracer.seq,
+                        source: tracer.source,
+                        id: pkg.id,
+                        resp: args
+                    };
+                } else {
+                    resp = {
+                        id: pkg.id,
+                        resp: args
+                    };
+                }
+                if (this.bufferMsg) {
+                    this.enqueue(socket, resp);
+                } else {
+                    this.doSend(socket, resp);
+                }
+            });
+        }
     }
 
     processMsgs(socket: any, pkgs: Array<AcceptorPkg>) {

@@ -74,7 +74,7 @@ export class WSMailBox extends EventEmitter {
           self.processMsg(self, pkg);
         }
       } catch (err) {
-        logger.error('rpc client process message with error: %s', err.stack);
+        logger.error('rpc client process message with error: %s', (err as Error).stack);
       }
     });
 
@@ -196,7 +196,7 @@ export class WSMailBox extends EventEmitter {
     }
     delete mailbox.requests[pkg.id];
     let rpcDebugLog = mailbox.opts.rpcDebugLog;
-    let tracer = null;
+    let tracer:Tracer | null = null;
     let sendErr = null;
     if (rpcDebugLog) {
       tracer = new Tracer(mailbox.opts.rpcLogger, mailbox.opts.rpcDebugLog, mailbox.opts.clientId, pkg.source, pkg.resp, pkg.id, pkg.seq);

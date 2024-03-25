@@ -93,7 +93,7 @@ export class InputBuffer {
         return r;
     }
 
-    readObject(): string | object | Array<string|object> {
+    readObject(): string | object | Array<string|object> | undefined {
         let type = this.readShort();
         let instance = null;
         // console.log('readObject %s', type)

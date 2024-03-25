@@ -32,7 +32,7 @@ export class TCPMailBox extends EventEmitter implements IMailBox {
     timeoutValue: number;
     connected: boolean = false;
     closed: boolean = false;
-    serverId: string;
+    serverId: string | undefined;
     opts: any;
     socket: any = null;
     _interval: any;
@@ -54,10 +54,10 @@ export class TCPMailBox extends EventEmitter implements IMailBox {
         this.interval = opts.interval || DEFAULT_INTERVAL;
         this.timeoutValue = opts.timeout || DEFAULT_CALLBACK_TIMEOUT;
         // Heartbeat ping interval.
-        this.ping = 'ping' in opts ? opts.ping : 25e3;
+        this.ping = 'ping' in opts ? opts.ping! : 25e3;
 
         // Heartbeat pong response timeout.
-        this.pong = 'pong' in opts ? opts.pong : 10e3;
+        this.pong = 'pong' in opts ? opts.pong! : 10e3;
 
         this.timer = {};
 
@@ -85,7 +85,7 @@ export class TCPMailBox extends EventEmitter implements IMailBox {
                 }, this.interval);
             }
             this.heartbeat();
-            utils.invokeCallback(cb, undefined);
+            utils.invokeCallback(cb, null);
         });
 
         this.composer.on('data', (data: Buffer) => {
@@ -103,7 +103,7 @@ export class TCPMailBox extends EventEmitter implements IMailBox {
                 }
             } catch(err) {
                 if(err) {
-                    logger.error('[pinus-rpc] tcp mailbox process data error: %j', err.stack);
+                    logger.error('[pinus-rpc] tcp mailbox process data error: %j', (err as Error).stack);
                 }
             }
         });
@@ -141,10 +141,14 @@ export class TCPMailBox extends EventEmitter implements IMailBox {
             this._interval = null;
         }
         if(Object.keys(this.timer).length) {
-            clearTimeout(this.timer['ping']);
-            this.timer['ping'] = null;
-            clearTimeout(this.timer['pong']);
-            this.timer['pong'] = null;
+            if (this.timer['ping']) {
+                clearTimeout(this.timer['ping']);
+                delete this.timer['ping'];
+            }
+            if (this.timer['pong']) {
+                clearTimeout(this.timer['pong']);
+                delete this.timer['pong'];
+            }
         }
         if (this.socket) {
             this.socket.removeAllListeners();
@@ -218,7 +222,7 @@ export class TCPMailBox extends EventEmitter implements IMailBox {
 
         if(this.timer['pong']) {
             clearTimeout(this.timer['pong']);
-            this.timer['pong'] = null;
+            delete this.timer['pong'];
         }
 
         if(!this.timer['ping']) {
@@ -234,7 +238,7 @@ export class TCPMailBox extends EventEmitter implements IMailBox {
         function pong() {
             if(self.timer['pong']) {
                 clearTimeout(self.timer['pong']);
-                self.timer['pong'] = null;
+                delete self.timer['pong'];
             }
 
             self.emit('close', self.id);
@@ -249,7 +253,7 @@ export class TCPMailBox extends EventEmitter implements IMailBox {
         function ping() {
             if(self.timer['ping']) {
                 clearTimeout(self.timer['ping']);
-                self.timer['ping'] = null;
+                delete self.timer['ping'];
             }
             self.socket.write(self.composer.compose(PING));
             self.timer['pong'] = setTimeout(pong, self.pong);

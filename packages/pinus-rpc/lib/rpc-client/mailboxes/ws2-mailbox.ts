@@ -55,8 +55,8 @@ export class WS2MailBox extends EventEmitter {
   _KPinterval: any = null;
   _KP_last_ping_time: number = -1;
   _KP_last_pong_time: number = -1;
-  DEFAULT_ZIP_LENGTH: number;
-  useZipCompress: boolean;
+  DEFAULT_ZIP_LENGTH = 0;
+  useZipCompress = false;
 
   constructor(server: { id: number, host: Function, port: string }, opts: MailBoxOpts) {
     super();
@@ -96,7 +96,7 @@ export class WS2MailBox extends EventEmitter {
           self.processMsg(self, msg.body);
         }
       } catch (e) {
-        console.error('ws rpc client process message with error: %j', e.stack);
+        console.error('ws rpc client process message with error: %j', (e as Error).stack);
       }
     });
 
@@ -275,7 +275,7 @@ export class WS2MailBox extends EventEmitter {
     }
     delete mailbox.requests[pkg.id];
     let rpcDebugLog = mailbox.opts.rpcDebugLog;
-    let tracer = null;
+    let tracer:Tracer | null = null;
     let sendErr = null;
     if (rpcDebugLog) {
       tracer = new Tracer(mailbox.opts.rpcLogger, mailbox.opts.rpcDebugLog, mailbox.opts.clientId, pkg.source, pkg.resp, pkg.id, pkg.seq);

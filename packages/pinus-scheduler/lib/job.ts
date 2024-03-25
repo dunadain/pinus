@@ -23,8 +23,8 @@ let lateCount = 0;
 export class Job {
     data: any;
     func: Function;
-    type: number;
-    trigger: { excuteTime(): number, nextExcuteTime(time?: number): number };
+    type = -1;
+    trigger!: { excuteTime(): number; nextExcuteTime(time?: number): number; };
     id: number;
     runTime: number;
 
@@ -37,7 +37,7 @@ export class Job {
             this.trigger = cronTrigger.createTrigger(trigger, this);
         } else if (typeof (trigger) === 'object') {
             this.type = SIMPLE_JOB;
-            this.trigger = simpleTrigger.createTrigger(trigger, this);
+            this.trigger = simpleTrigger.createTrigger(trigger, this) as any;
         }
 
         this.id = jobId++;
@@ -56,7 +56,7 @@ export class Job {
                 logger.warn('run Job count ' + jobCount + ' late :' + late + ' lateCount ' + (++lateCount));
             this.func(this.data);
         } catch (e) {
-            logger.error('Job run error for exception ! ' + e.stack);
+            logger.error('Job run error for exception ! ' + (e as Error).stack);
         }
     }
 
@@ -64,11 +64,11 @@ export class Job {
      * Compute the next excution time
      */
     nextTime() {
-        return this.trigger.nextExcuteTime();
+        return this.trigger!.nextExcuteTime();
     }
 
     excuteTime() {
-        return this.trigger.excuteTime();
+        return this.trigger!.excuteTime();
     }
 }
 

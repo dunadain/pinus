@@ -24,7 +24,7 @@ let Limit = [
 
 export class CronTrigger {
     trigger: any;
-    nextTime: number;
+    nextTime = 0;
     job: Job;
     /**
      * The constructor of the CronTrigger
@@ -63,13 +63,13 @@ export class CronTrigger {
         outmost: while (true) {
             if (date.getFullYear() > 2999) {
                 logger.error('Can\'t compute the next time, exceed the limit');
-                return null;
+                return 0;
             }
             if (!timeMatch(date.getMonth(), cronTrigger[MONTH])) {
                 let nextMonth = nextCronTime(date.getMonth(), cronTrigger[MONTH]);
 
                 if (nextMonth == null)
-                    return null;
+                    return 0;
 
                 if (nextMonth <= date.getMonth()) {
                     date.setFullYear(date.getFullYear() + 1);
@@ -94,7 +94,7 @@ export class CronTrigger {
                 do {
                     let nextDom = nextCronTime(date.getDate(), cronTrigger[DOM]);
                     if (nextDom == null)
-                        return null;
+                        return 0;
 
                     // If the date is in the next month, add month
                     if (nextDom <= date.getDate() || nextDom > domLimit) {
@@ -264,7 +264,7 @@ function nextCronTime(value: number, cronTime: Array<number>) {
     }
 
     logger.warn('Compute next Time error! value :' + value + ' cronTime : ' + cronTime);
-    return null;
+    return 0;
 }
 
 /**
@@ -306,7 +306,7 @@ function decodeRangeTime(map: {[key: number]: number}, timeStr: string): void {
     times[1] = Number(times[1]);
     if (times[0] > times[1]) {
         console.log('Error time range');
-        return null;
+        return;
     }
 
     for (let i = times[0]; i <= times[1]; i++) {

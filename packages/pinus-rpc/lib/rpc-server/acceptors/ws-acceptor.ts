@@ -34,9 +34,9 @@ export class WSAcceptor extends EventEmitter {
   sockets: { [key: string]: any };
   msgQueues: { [key: string]: any };
   cb: any;
-  inited: boolean;
+  inited = false;
   server: any;
-  closed: boolean;
+  closed = false;
 
   constructor(opts: AcceptorOpts, cb: (tracer: Tracer, msg?: any, cb?: Function) => void) {
     super();
@@ -87,7 +87,7 @@ export class WSAcceptor extends EventEmitter {
           }
         } catch (e) {
           // socke.io would broken if uncaugth the exception
-          logger.error('rpc server process message error: %j', e.stack);
+          logger.error('rpc server process message error: %j', (e as Error).stack);
         }
       });
 
@@ -147,7 +147,7 @@ export class WSAcceptor extends EventEmitter {
     try {
       this.server.server.close();
     } catch (err) {
-      logger.error('rpc server close error: %j', err.stack);
+      logger.error('rpc server close error: %j', (err as Error).stack);
     }
     this.emit('closed');
   }
@@ -162,7 +162,7 @@ export class WSAcceptor extends EventEmitter {
   }
 
   processMsg(socket: any, acceptor: WSAcceptor, pkg: AcceptorPkg) {
-    let tracer: Tracer = null;
+    let tracer: Tracer | null = null;
     if (this.rpcDebugLog) {
       tracer = new Tracer(acceptor.rpcLogger, acceptor.rpcDebugLog, pkg.remote, pkg.source, pkg.msg, pkg.id, pkg.seq);
       tracer.info('server', __filename, 'processMsg', 'ws-acceptor receive message and try to process message');

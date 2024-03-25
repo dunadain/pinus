@@ -1,18 +1,15 @@
 import {EventEmitter} from 'events';
 import {Tracer} from '../../util/tracer';
-import * as utils from '../../util/utils';
 import {Composer} from '../../util/composer';
-import * as util from 'util';
 import * as net from 'net';
-import * as Coder from '../../util/coder';
 import {AcceptorOpts, IAcceptor, AcceptorCallback} from '../acceptor';
-import { getLogger, Logger } from 'pinus-logger';
+import { getLogger } from 'pinus-logger';
 let logger = getLogger('pinus-rpc', 'tcp-acceptor');
 
 export interface AcceptorPkg {
     source: string;
     remote: string;
-    id: string & number;
+    id: string | number;
     seq: number;
     msg: string;
 }
@@ -36,7 +33,7 @@ export class TCPAcceptor extends EventEmitter implements IAcceptor {
     msgQueues: { [key: string]: any } = {};
     cb: (tracer: any, msg?: any, cb?: Function) => void;
     inited: boolean = false;
-    closed: boolean;
+    closed = false;
 
     ping: number;
 
@@ -48,18 +45,18 @@ export class TCPAcceptor extends EventEmitter implements IAcceptor {
         super();
         this.bufferMsg = opts.bufferMsg;
         this.interval = opts.interval || DEFAULT_INTERVAL; // flush interval in ms
-        this.pkgSize = opts.pkgSize;
+        this.pkgSize = opts.pkgSize!;
         this.rpcLogger = opts.rpcLogger;
         this.rpcDebugLog = opts.rpcDebugLog;
         this._interval = null; // interval object
         // Heartbeat ping interval.
-        this.ping = 'ping' in opts ? opts.ping : 25e3;
+        this.ping = 'ping' in opts ? opts.ping! : 25e3;
         // ping timer for each client connection
         this.timer = {};
         this.server = null;
         this.sockets = {};
         this.msgQueues = {};
-        this.cb = cb;
+        this.cb = cb as any;
         this.socketId = 0;
     }
 
@@ -85,7 +82,7 @@ export class TCPAcceptor extends EventEmitter implements IAcceptor {
             socket.composer = new Composer({
                 maxLength: this.pkgSize
             });
-            this.timer[socket.id] = null;
+            delete this.timer[socket.id];
             this.heartbeat(socket.id);
             socket.on('data', (data: Buffer) => {
                 socket.composer.feed(data);
@@ -166,7 +163,7 @@ export class TCPAcceptor extends EventEmitter implements IAcceptor {
             // remove listener on socket,close socket
             if(self.timer[socketId]) {
                 clearInterval(self.timer[socketId]);
-                self.timer[socketId] = null;
+                delete self.timer[socketId];
             }
 
             let remoteAddress = self.sockets[socketId].remoteAddress;
@@ -195,7 +192,7 @@ export class TCPAcceptor extends EventEmitter implements IAcceptor {
         try {
             this.server.close();
         } catch (err) {
-            logger.error('rpc server close error: %j', err.stack);
+            logger.error('rpc server close error: %j', (err as Error).stack);
         }
         this.emit('closed');
     }
@@ -230,12 +227,12 @@ export class TCPAcceptor extends EventEmitter implements IAcceptor {
     }
 
     processMsg(socket: any, pkg: AcceptorPkg) {
-        let tracer: Tracer = null;
+        let tracer: Tracer | null = null;
         if (this.rpcDebugLog) {
             tracer = new Tracer(this.rpcLogger, this.rpcDebugLog, pkg.remote, pkg.source, pkg.msg, pkg.id, pkg.seq);
             tracer.info('server', __filename, 'processMsg', 'tcp-acceptor receive message and try to process message');
         }
-        this.cb(tracer, pkg.msg, pkg.id ? this.respCallback.bind(this, socket, pkg, tracer) : null);
+        if (tracer) this.cb(tracer, pkg.msg, pkg.id ? this.respCallback.bind(this, socket, pkg, tracer) : undefined);
     }
 
     processMsgs(socket: any, pkgs: Array<AcceptorPkg>) {

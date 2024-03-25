@@ -41,7 +41,7 @@ const routeFunc = function(routeParam: any, msg: any,
 };
 
 const client = pinusrpc.createClient({routeContext: routeContext,
-    router: routeFunc, context: context,
+    router: routeFunc as any, context: context,
     mailboxFactory: createTcpMailBox,
     bufferMsg: true,
     interval: 2000,

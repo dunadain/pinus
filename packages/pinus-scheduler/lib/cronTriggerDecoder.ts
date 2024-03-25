@@ -121,7 +121,7 @@ function nextTime(value: number, cronTime: number | Array<number>) {
                 return arr[i];
     }
 
-    return null;
+    return 0;
 }
 
 function timeMatch(value: number, cronTime: number | Array<number>) {
@@ -208,7 +208,7 @@ function decodeRangeTime(map: {[key: number]: any}, timeStr: any): void {
     let times = timeStr.split('-');
 
     if (times[0] > times[1])
-        return null;
+        return;
     for (let i = <number>times[0]; i <= <number>times[1]; i++)
         map[i] = i;
 }

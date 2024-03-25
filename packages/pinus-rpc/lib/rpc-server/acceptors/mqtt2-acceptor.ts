@@ -39,9 +39,9 @@ export class MQTT2Acceptor extends EventEmitter {
   msgQueues: any;
   servicesMap: any;
   cb: any;
-  inited: boolean;
-  server: net.Server;
-  closed: boolean;
+  inited = false;
+  server: net.Server | undefined;
+  closed = false;
 
   constructor(opts: AcceptorOpts, cb: (tracer: Tracer, msg?: any, cb?: Function) => void) {
     super();
@@ -90,9 +90,9 @@ export class MQTT2Acceptor extends EventEmitter {
         try {
           self.processMsg(socket, self, newPkg);
         } catch (err) {
-          let resp = Coder.encodeServer(newPkg.id, [self.cloneError(err)]);
+          let resp = Coder.encodeServer(newPkg.id, [self.cloneError(err as any)]);
           // doSend(socket, resp);
-          logger.error('process rpc message error %s', err.stack);
+          logger.error('process rpc message error %s', (err as Error).stack);
         }
       });
 
@@ -131,7 +131,7 @@ export class MQTT2Acceptor extends EventEmitter {
       clearInterval(this._interval);
       this._interval = null;
     }
-    this.server.close();
+    this.server?.close();
     this.emit('closed');
   }
 
@@ -154,7 +154,7 @@ export class MQTT2Acceptor extends EventEmitter {
   }
 
   processMsg(socket: object, acceptor: MQTT2Acceptor, pkg: AcceptorPkg) {
-    let tracer: Tracer = null;
+    let tracer: Tracer | null = null;
     if (this.rpcDebugLog) {
       tracer = new Tracer(acceptor.rpcLogger, acceptor.rpcDebugLog, pkg.remote, pkg.source, pkg.msg, pkg.id, pkg.seq);
       tracer.info('server', __filename, 'processMsg', 'mqtt-acceptor receive message and try to process message');

@@ -39,7 +39,7 @@ export class Gateway extends EventEmitter {
         this.started = false;
         this.stoped = false;
         let acceptorFactory = opts.acceptorFactory || createDefaultAcceptor;
-        this.services = opts.services;
+        this.services = opts.services!;
         const dispatcher = this.dispatcher = new Dispatcher(this.services);
         if (!!this.opts.reloadRemotes) {
             this.watchServices();
@@ -98,7 +98,7 @@ export class Gateway extends EventEmitter {
 
     private reloadRemoter(app: any, item: any) {
         let res: { [key: string]: any } = {};
-        let m: { [key: string]: any } = Loader.load(item.path, app, true, true, LoaderPathType.PINUS_REMOTER);
+        let m: { [key: string]: any } = Loader.load(item.path, app, true, true, LoaderPathType.PINUS_REMOTER)!;
         if (m) {
             createNamespace(item.namespace, res);
             for (let s in m) {

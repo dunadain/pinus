@@ -1,5 +1,5 @@
 
-export function invokeCallback(cb: Function, err: Error) {
+export function invokeCallback(cb: Function, err: Error | null) {
     if (typeof cb === 'function') {
         cb.apply(null, Array.prototype.slice.call(arguments, 1));
     }

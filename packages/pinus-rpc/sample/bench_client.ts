@@ -43,25 +43,25 @@ let servers =
     port: 3333
   }];
 // route parameter passed to route function
-let routeParam: string = null;
+let routeParam: string = '';
 
 // route context passed to route function
 let routeContext = servers;
 
 
 // route function to caculate the remote server id
-let routeFunc = function (session: { [key: string]: any }, msg: RpcMsg, context: RouteServers, cb: (err: Error, serverId?: string) => void) {
+let routeFunc = function (session: { [key: string]: any }, msg: RpcMsg, context: RouteServers, cb: (err: Error | null, serverId?: string) => void) {
   cb(null, context[0].id);
 };
 
 let client = new RpcClient({
   routeContext: servers,
-  router: routeFunc,
+  router: routeFunc as any,
   context: context,
   pendingSize: 10000000000
 });
 
-let start: number = null;
+let start: number = 0;
 client.start(async function (err) {
   console.log('rpc client start ok.');
 
@@ -114,7 +114,7 @@ async function runParallels() {
 }
 
 async function runParallel(maxParallel: number) {
-  let all = [];
+  let all:any[] = [];
   for (let times = 0; times < num_requests; times++) {
     all.push(rpcRequest(payload));
     if (all.length === maxParallel) {

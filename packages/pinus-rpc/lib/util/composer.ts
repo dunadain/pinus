@@ -21,7 +21,7 @@ export class Composer extends EventEmitter implements IComposer {
     offset: number;
     left: number;
     length: number;
-    buf: Buffer;
+    buf: Buffer | null;
     state: number;
 
     constructor(private opts: { maxLength?: number }) {
@@ -54,7 +54,7 @@ export class Composer extends EventEmitter implements IComposer {
             throw new Error('data should be an instance of String or Buffer');
         }
 
-        if (type === 0 && data.length === 0) {
+        if (type === 0 && data?.length === 0) {
             throw new Error('data should not be empty.');
         }
 
@@ -164,9 +164,11 @@ export class Composer extends EventEmitter implements IComposer {
     _readData(data: Buffer, offset: number, end: number) {
         let left = end - offset;
         let size = Math.min(left, this.left);
-        data.copy(this.buf, this.offset, offset, offset + size);
-        this.left -= size;
-        this.offset += size;
+        if (this.buf) {
+            data.copy(this.buf, this.offset, offset, offset + size);
+            this.left -= size;
+            this.offset += size;
+        }
 
         if (this.left === 0) {
             let buf = this.buf;
