@@ -25,7 +25,7 @@ export class MailBox extends EventEmitter implements IMailBox {
         this.port = serverInfo.port;
 
 
-        this.bufferMsg = opts.bufferMsg;
+        this.bufferMsg = !!opts.bufferMsg;
         this.keepalive = opts.keepalive || constants.DEFAULT_PARAM.KEEPALIVE;
         this.interval = opts.interval || constants.DEFAULT_PARAM.INTERVAL;
         this.timeoutValue = opts.timeout || constants.DEFAULT_PARAM.CALLBACK_TIMEOUT;
@@ -46,7 +46,7 @@ export class MailBox extends EventEmitter implements IMailBox {
     keepalive: number;
     interval: number;
     timeoutValue: any;
-    keepaliveTimer: NodeJS.Timeout;
+    keepaliveTimer: NodeJS.Timeout | undefined;
     lastPing = -1;
     lastPong = -1;
     connected = false;
@@ -54,7 +54,7 @@ export class MailBox extends EventEmitter implements IMailBox {
     opts: any;
     serverId: string;
     socket: any;
-    _interval: NodeJS.Timeout;
+    _interval: NodeJS.Timeout | undefined;
     _errored = false;
 
     connect(tracer: Tracer, cb: (err?: Error) => void) {
@@ -108,7 +108,7 @@ export class MailBox extends EventEmitter implements IMailBox {
                     this.processMsg(pkg);
                 }
             } catch (err) {
-                logger.error('rpc client %s process remote server %s message with error: %s', self.serverId, self.id, err.stack);
+                logger.error('rpc client %s process remote server %s message with error: %s', self.serverId, self.id, (err as Error).stack);
             }
         });
 
@@ -148,7 +148,7 @@ export class MailBox extends EventEmitter implements IMailBox {
         this.connected = false;
         if (this._interval) {
             clearInterval(this._interval);
-            this._interval = null;
+            this._interval = undefined;
         }
         this.socket.destroy();
     }
@@ -267,7 +267,7 @@ export class MailBox extends EventEmitter implements IMailBox {
         }
         let pkgResp = pkg.resp;
 
-        cb(tracer, sendErr, pkgResp);
+        cb(tracer!, sendErr, pkgResp);
     }
 
     setCbTimeout(id: number, tracer: any, cb: Function) {

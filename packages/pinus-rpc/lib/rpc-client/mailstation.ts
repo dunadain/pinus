@@ -64,15 +64,15 @@ export class MailStation extends EventEmitter {
 
     state = STATE_INITED;
 
-    opts: MailStationOpts;
+    opts: MailStationOpts | undefined;
     mailboxFactory: IMailBoxFactory;
     pendingSize: number;
     constructor(opts?: MailStationOpts) {
         super();
         this.opts = opts;
-        this.mailboxFactory = opts.mailboxFactory || defaultMailboxFactory;
+        this.mailboxFactory = opts?.mailboxFactory ?? defaultMailboxFactory;
 
-        this.pendingSize = opts.pendingSize || constants.DEFAULT_PARAM.DEFAULT_PENDING_SIZE;
+        this.pendingSize = opts?.pendingSize ?? constants.DEFAULT_PARAM.DEFAULT_PENDING_SIZE;
 
     }
 
@@ -238,7 +238,7 @@ export class MailStation extends EventEmitter {
      * @param  {Function} cb       callback function
      * @return {Void}
      */
-    dispatch(tracer: Tracer, serverId: string, msg: MailBoxMessage, opts: object, cb:  (err: Error , ...args: any[]) => void) {
+    dispatch(tracer: Tracer, serverId: string, msg: MailBoxMessage, opts: object, cb?:  (err: Error , ...args: any[]) => void) {
         tracer && tracer.info('client', __filename, 'dispatch', 'dispatch rpc message to the mailbox');
         // tracer && (tracer.cb = cb);
         if (this.state !== STATE_STARTED) {
@@ -351,10 +351,10 @@ export class MailStation extends EventEmitter {
      * @return {String}   serverId remote server id
      * @param  {Function}   cb     callback function
      */
-    connect(tracer: Tracer, serverId: string, cb: Function) {
+    connect(tracer: Tracer, serverId: string, cb?: Function) {
         let self = this;
         let mailbox = self.mailboxes[serverId];
-        mailbox.connect(tracer, function (err: Error) {
+        mailbox.connect(tracer, function (err) {
             if (!!err) {
                 tracer && tracer.error('client', __filename, 'lazyConnect', 'fail to connect to remote server: ' + serverId);
                 logger.error('[pinus-rpc] mailbox fail to connect to remote server: ' + serverId);
@@ -380,7 +380,7 @@ export class MailStation extends EventEmitter {
 /**
  * Do before or after filter
  */
-let doFilter = function (tracer: Tracer, err: Error, serverId: string, msg: MailBoxMessage, opts: object, filters: Array<RpcFilter>, index: number, operate: 'before' | 'after', cb: Function) {
+let doFilter = function (tracer: Tracer, err: string | Error | null | undefined, serverId: string, msg: MailBoxMessage, opts: object, filters: Array<RpcFilter>, index: number, operate: 'before' | 'after', cb: Function) {
     if (index < filters.length) {
         tracer && tracer.info('client', __filename, 'doFilter', 'do ' + operate + ' filter ' + filters[index].name);
     }
@@ -402,12 +402,12 @@ let doFilter = function (tracer: Tracer, err: Error, serverId: string, msg: Mail
         return;
     }
     if (typeof filter[operate] === 'function') {
-        filter[operate](serverId, msg, opts, function (target: Error&string, message: MailBoxMessage, options: any) {
+        filter[operate]!(serverId, msg, opts, function (target: Error | string | undefined, message: MailBoxMessage, options: any) {
             index++;
             if (utils.getObjectClass(target) === 'Error') {
                 doFilter(tracer, target, serverId, msg, opts, filters, index, operate, cb);
             } else {
-                doFilter(tracer, null, target || serverId, message || msg, options || opts, filters, index, operate, cb);
+                doFilter(tracer, null, target ? target.toString() : serverId, message || msg, options || opts, filters, index, operate, cb);
             }
         });
         return;
@@ -416,7 +416,7 @@ let doFilter = function (tracer: Tracer, err: Error, serverId: string, msg: Mail
     doFilter(tracer, err, serverId, msg, opts, filters, index, operate, cb);
 };
 
-let lazyConnect = function (tracer: Tracer, station: MailStation, serverId: string, factory: IMailBoxFactory, cb: Function) {
+let lazyConnect = function (tracer: Tracer, station: MailStation, serverId: string, factory: IMailBoxFactory, cb?: Function) {
     tracer && tracer.info('client', __filename, 'lazyConnect', 'create mailbox and try to connect to remote server');
     let server = station.servers[serverId];
     let online = station.onlines[serverId];
@@ -461,12 +461,12 @@ let flushPending = function (tracer: Tracer, station: MailStation, serverId: str
         logger.error('[pinus-rpc] fail to flush pending messages for empty mailbox: ' + serverId);
     }
     for (let i = 0, l = pending.length; i < l; i++) {
-        station.dispatch.apply(station, pending[i]);
+        station.dispatch.apply(station, pending[i] as any);
     }
     delete station.pendings[serverId];
 };
 
-let errorHandler = function (tracer: Tracer, station: MailStation, err: Error, serverId: string, msg: object, opts: object, flag: boolean, cb: Function) {
+let errorHandler = function (tracer: Tracer, station: MailStation, err: Error, serverId: string, msg: object, opts: object, flag: boolean, cb?: Function) {
     if (!!station.handleError) {
         station.handleError(err, serverId, msg, opts);
     } else {

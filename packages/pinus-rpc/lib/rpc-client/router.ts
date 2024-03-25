@@ -10,8 +10,8 @@ import {RpcMsg, RpcClient, RouteContext, RouteContextClass} from './client';
  * @param context {Object} context of client
  * @param cb(err, serverId)
  */
-let defRoute = function (session: {[key: string]: any}, msg: RpcMsg, context: RouteContextClass, cb: (err: Error, serverId?: string) => void) {
-    let list = context.getServersByType(msg.serverType);
+let defRoute = function (session: {[key: string]: any}, msg: RpcMsg, context: RouteContextClass, cb: (err: Error | null, serverId?: string) => void) {
+    let list = context.getServersByType!(msg.serverType!);
     if (!list || !list.length) {
         cb(new Error('can not find server info for type:' + msg.serverType));
         return;
@@ -29,7 +29,7 @@ let defRoute = function (session: {[key: string]: any}, msg: RpcMsg, context: Ro
  * @param msg {Object} rpc message.
  * @param cb {Function} cb(err, serverId).
  */
-let rdRoute = function (client: RpcClient, serverType: string, msg: RpcMsg, cb: (err: Error, serverId?: string) => void) {
+let rdRoute = function (client: RpcClient, serverType: string, msg: RpcMsg, cb: (err: Error | null, serverId?: string) => void) {
     let servers = client._station.serversMap[serverType];
     if (!servers || !servers.length) {
         cb(new Error('rpc servers not exist with serverType: ' + serverType));
@@ -47,7 +47,7 @@ let rdRoute = function (client: RpcClient, serverType: string, msg: RpcMsg, cb: 
  * @param msg {Object} rpc message.
  * @param cb {Function} cb(err, serverId).
  */
-let rrRoute = function (client: RpcClient & {rrParam: any}, serverType: string, msg: RpcMsg, cb: (err: Error, serverId?: string) => void) {
+let rrRoute = function (client: RpcClient & {rrParam: any}, serverType: string, msg: RpcMsg, cb: (err: Error | null, serverId?: string) => void) {
     let servers = client._station.serversMap[serverType];
     if (!servers || !servers.length) {
         cb(new Error('rpc servers not exist with serverType: ' + serverType));
@@ -77,7 +77,7 @@ let rrRoute = function (client: RpcClient & {rrParam: any}, serverType: string, 
  * @param msg {Object} rpc message.
  * @param cb {Function} cb(err, serverId).
  */
-let wrrRoute = function (client: RpcClient, serverType: string, msg: RpcMsg, cb: (err: Error, serverId?: string) => void) {
+let wrrRoute = function (client: RpcClient, serverType: string, msg: RpcMsg, cb: (err: Error | null, serverId?: string) => void) {
     let servers = client._station.serversMap[serverType];
     if (!servers || !servers.length) {
         cb(new Error('rpc servers not exist with serverType: ' + serverType));
@@ -117,7 +117,7 @@ let wrrRoute = function (client: RpcClient, serverType: string, msg: RpcMsg, cb:
             }
         }
         let server = client._station.servers[servers[index]];
-        if (server.weight >= weight) {
+        if (server.weight! >= weight) {
             client.wrrParam[serverType] = {
                 index: index,
                 weight: weight
@@ -137,7 +137,7 @@ let wrrRoute = function (client: RpcClient, serverType: string, msg: RpcMsg, cb:
  * @param cb {Function} cb(err, serverId).
 */
 
-let laRoute = function (client: RpcClient & {laParam: any}, serverType: string, msg: RpcMsg, cb: (err: Error, serverId?: string) => void) {
+let laRoute = function (client: RpcClient & {laParam: any}, serverType: string, msg: RpcMsg, cb: (err: Error | null, serverId?: string) => void) {
     let servers = client._station.serversMap[serverType];
     if (!servers || !servers.length) {
         return cb(new Error('rpc servers not exist with serverType: ' + serverType));
@@ -186,7 +186,7 @@ let laRoute = function (client: RpcClient & {laParam: any}, serverType: string, 
  * @param msg {Object} rpc message.
  * @param cb {Function} cb(err, serverId).
  */
-let chRoute = function (client: RpcClient , serverType: string, msg: RpcMsg, cb: (err: Error, serverId?: string) => void) {
+let chRoute = function (client: RpcClient , serverType: string, msg: RpcMsg, cb: (err: Error | null, serverId?: string) => void) {
     let servers = client._station.serversMap[serverType];
     if (!servers || !servers.length) {
         return cb(new Error('rpc servers not exist with serverType: ' + serverType));
@@ -203,7 +203,7 @@ let chRoute = function (client: RpcClient , serverType: string, msg: RpcMsg, cb:
         con = new ConsistentHash(servers.map(id => client._station.servers[id]), client.opts);
     }
     let hashFieldIndex = client.opts.hashFieldIndex;
-    let field = msg.args[hashFieldIndex] || JSON.stringify(msg);
+    let field = msg.args[hashFieldIndex!] || JSON.stringify(msg);
     cb(null, con.getNode(field));
     client.chParam[serverType] = {
         consistentHash: con

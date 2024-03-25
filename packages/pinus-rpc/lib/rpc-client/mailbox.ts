@@ -12,7 +12,7 @@ import {Tracer} from '../util/tracer';
 
 
 export interface MailBoxTimeoutCallback {
-    (tracer: Tracer , err: Error , resp ?: any): void;
+    (tracer: Tracer , err: Error | null, resp ?: any): void;
 }
 
 export interface MailBoxOpts {
@@ -34,7 +34,7 @@ export interface MailBoxMessage {
 
 export interface IMailBox {
     close(): void;
-    send(tracer: Tracer, msg: MailBoxMessage, opts: any, cb: MailBoxTimeoutCallback): void;
+    send(tracer: Tracer, msg: MailBoxMessage, opts: any, cb: MailBoxTimeoutCallback | null): void;
     on(event: 'close', listener: (serverid: string) => void): this;
     connect(tracer: Tracer, cb: (err?: Error) => void): void;
 }

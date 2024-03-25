@@ -111,7 +111,7 @@ export class MQTT2MailBox extends EventEmitter {
         pkg = <any>Coder.decodeClient(pkg.payload);
         self.processMsg(self, pkg);
       } catch (err) {
-        logger.error('rpc client %s process remote server %s message with error: %s', self.serverId, self.id, err.stack);
+        logger.error('rpc client %s process remote server %s message with error: %s', self.serverId, self.id, (err as Error).stack);
       }
     });
 

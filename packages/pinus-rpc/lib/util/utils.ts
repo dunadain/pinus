@@ -11,7 +11,7 @@ export function applyCallback(cb: Function, args: any[]) {
     }
 }
 
-export function getObjectClass(obj: Object) {
+export function getObjectClass(obj: Object | undefined | null) {
     if (!obj) {
         return;
     }

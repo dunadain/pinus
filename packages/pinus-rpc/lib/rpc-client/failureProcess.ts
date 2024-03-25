@@ -1,13 +1,12 @@
 import { getLogger } from 'pinus-logger';
 let logger = getLogger('pinus-rpc', 'failprocess');
 import { constants } from '../util/constants';
-import * as utils from '../util/utils';
 
-export function failureProcess(this: any, code: string, tracer: any, serverId: string, msg: object, opts: {failMode: string}) {
+export function failureProcess(this: any, code: string, tracer: any, serverId: string, msg: any, opts: { failMode: string }) {
     let cb = tracer && tracer.cb;
     let mode = opts.failMode;
     let FAIL_MODE = constants.FAIL_MODE;
-    let method = failfast;
+    let method: any = failfast;
 
     if (mode === FAIL_MODE.FAILOVER) {
         method = failover;
@@ -31,7 +30,7 @@ export function failureProcess(this: any, code: string, tracer: any, serverId: s
     //         method = failfast;
     //         break;
     // }
-    method.call(this, code, tracer, serverId, msg, opts, cb);
+    method.call(this, Number(code), tracer, serverId, msg, opts, cb);
 }
 
 /**
@@ -46,7 +45,7 @@ export function failureProcess(this: any, code: string, tracer: any, serverId: s
  *
  * @api private
  */
-let failover = function (this: any, code: number, tracer: {servers: object}, serverId: string, msg: {serverType: string}, opts: object, cb: Function) {
+let failover = function (this: any, code: number, tracer: { servers: object }, serverId: string, msg: { serverType: string }, opts: object, cb: Function) {
     let servers;
     let self = this;
     let counter = 0;
@@ -84,7 +83,7 @@ let failover = function (this: any, code: number, tracer: {servers: object}, ser
  *
  * @api private
  */
-let failsafe = function (this: any, code: number, tracer: {[key: string]: any}, serverId: string, msg: {serverType: string}, opts: {[key: string]: any}, cb: Function) {
+let failsafe = function (this: any, code: number, tracer: { [key: string]: any }, serverId: string, msg: { serverType: string }, opts: { [key: string]: any }, cb: Function) {
     let self = this;
     let retryTimes = opts.retryTimes || constants.DEFAULT_PARAM.FAILSAFE_RETRIES;
     let retryConnectTime = opts.retryConnectTime || constants.DEFAULT_PARAM.FAILSAFE_CONNECT_TIME;
@@ -138,7 +137,7 @@ let failsafe = function (this: any, code: number, tracer: {[key: string]: any}, 
  *
  * @api private
  */
-let failback = function (code: number, tracer: {[key: string]: any}, serverId: string, msg: {serverType: string}, opts: {[key: string]: any}, cb: Function) {
+let failback = function (code: number, tracer: { [key: string]: any }, serverId: string, msg: { serverType: string }, opts: { [key: string]: any }, cb: Function) {
     // todo record message in background and send the message at timing
 };
 
@@ -154,7 +153,7 @@ let failback = function (code: number, tracer: {[key: string]: any}, serverId: s
  *
  * @api private
  */
-let failfast = function (code: number, tracer: {[key: string]: any}, serverId: string, msg: {serverType: string}, opts: {[key: string]: any}, cb: Function) {
+let failfast = function (code: number, tracer: { [key: string]: any }, serverId: string, msg: { serverType: string }, opts: { [key: string]: any }, cb: Function) {
     logger.error('rpc failed with error, remote server: %s, msg: %j, error code: %s', serverId, msg, code);
     cb && cb(new Error('rpc failed with error code: ' + code));
 };
