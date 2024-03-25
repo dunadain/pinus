@@ -341,8 +341,10 @@ let localIps = function () {
             ips.push(details.address);
         }
     };
-    for (let dev in ifaces) {
-        ifaces[dev].forEach(func);
+    if (ifaces !== undefined) {
+        for (let dev in ifaces) {
+            ifaces[dev]?.forEach(func);
+        }
     }
     return ips;
 }();
