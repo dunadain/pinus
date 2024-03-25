@@ -24,9 +24,9 @@ if (!profiler) {
 }
 
 export class ProfilerModule implements IModule {
-    static  moduleId = 'profiler';
-    proxy: ProfileProxy;
-    constructor(opts ?: {isMaster ?: boolean}) {
+    static moduleId = 'profiler';
+    proxy: ProfileProxy | undefined;
+    constructor(opts?: { isMaster?: boolean }) {
         if (opts && opts.isMaster) {
             this.proxy = new ProfileProxy();
         }
@@ -74,9 +74,9 @@ export class ProfilerModule implements IModule {
 
     masterHandler(agent: MasterAgent, msg: any, cb: MasterCallback) {
         if (msg.type === 'CPU') {
-            this.proxy.stopCallBack(msg.body, msg.clientId, agent);
+            this.proxy?.stopCallBack(msg.body, msg.clientId, agent);
         } else {
-            this.proxy.takeSnapCallBack(msg.body);
+            this.proxy?.takeSnapCallBack(msg.body);
         }
     }
 
@@ -95,7 +95,7 @@ export class ProfilerModule implements IModule {
         let params = msg.params;
         let clientId = msg.clientId;
 
-        if (!this.proxy[method] || typeof this.proxy[method] !== 'function') {
+        if (!this.proxy || !this.proxy[method] || typeof this.proxy[method] !== 'function') {
             return;
         }
 

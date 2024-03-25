@@ -6,7 +6,7 @@ import { checkMsgValid } from './util';
 export class Encoder {
     protos: any;
 
-    private readonly _encodeCache: Buffer;
+    private readonly _encodeCache!: Buffer;
 
     constructor(protos: any, encoderCacheSize?: number) {
         this.init(protos);
@@ -141,7 +141,7 @@ export class Encoder {
                 break;
                 break;
             default:
-                let message: { [key: string]: any } = protos.__messages[type] || this.protos['message ' + type];
+                let message: { [key: string]: any } = protos!.__messages[type] || this.protos['message ' + type];
                 if (!!message) {
                     if (this._encodeCache) {
                         let lengthOffset = offset;

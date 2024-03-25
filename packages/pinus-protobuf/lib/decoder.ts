@@ -4,7 +4,7 @@ import { checkMsgValid } from './util';
 
 
 export class Decoder {
-    buffer: Buffer;
+    buffer!: Buffer;
     offset = 0;
     protos: any;
 
@@ -109,7 +109,7 @@ export class Decoder {
         };
     }
 
-    decodeProp(type: string, protos?: { [key: string]: any }) {
+    decodeProp(type: string, protos?: { [key: string]: any }):any {
         switch (type) {
             case 'uInt32':
                 return codec.decodeUInt32(this.getBytes());

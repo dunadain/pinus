@@ -41,4 +41,4 @@ export interface AdminServerInfo {
 }
 
 
-export type Callback = (err?: Error | string, body?: any) => void;
+export type Callback = (err?: Error | string | null, body?: any) => void;

@@ -33,7 +33,7 @@ export class AdminClient {
     callbacks: {[respId: string]: Callback} = {};
     _listeners: {[evt: string]: Listener[]} = {};
     state = AdminClient.ST_INITED;
-    socket: MqttClient;
+    socket: MqttClient | null;
     username = '';
     password = '';
     md5 = false;
@@ -126,7 +126,7 @@ export class AdminClient {
         msg.clientId = this.id;
         msg.username = this.username;
         let req = protocol.composeRequest(id, moduleId, msg);
-        this.callbacks[id] = cb;
+        if (cb) this.callbacks[id] = cb;
         this.doSend('client', req);
         // this.socket.emit('client', req);
     }
@@ -136,7 +136,7 @@ export class AdminClient {
         msg = msg || {};
         msg.clientId = this.id;
         msg.username = this.username;
-        let req = protocol.composeRequest(null, moduleId, msg);
+        let req = protocol.composeRequest(0, moduleId, msg);
         this.doSend('client', req);
         // this.socket.emit('client', req);
     }
@@ -153,7 +153,7 @@ export class AdminClient {
     }
 
     doSend(topic: string, msg: any) {
-        this.socket.send(topic, msg);
+        this.socket?.send(topic, msg);
     }
 
     on(event: string, listener: Listener) {

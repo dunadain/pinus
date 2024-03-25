@@ -22,8 +22,8 @@ let curId = 1;
 export class MqttServer extends EventEmitter {
     inited = false;
     closed = true;
-    server: net.Server;
-    socket: MqttConnection;
+    server: net.Server | undefined;
+    socket: MqttConnection | undefined;
 
     constructor(private opts?: any, private cb?: Function) {
         super();
@@ -33,7 +33,8 @@ export class MqttServer extends EventEmitter {
     listen(port: number) {
         // check status
         if (this.inited) {
-            this.cb(new Error('already inited.'));
+            if (this.cb)
+                this.cb(new Error('already inited.'));
             return;
         }
 
@@ -90,7 +91,7 @@ export class MqttServer extends EventEmitter {
     }
 
     send(topic: string, msg: any) {
-        this.socket.publish({
+        this.socket?.publish({
             topic: topic,
             payload: msg
         });
@@ -103,7 +104,7 @@ export class MqttServer extends EventEmitter {
 
         this.socket = undefined;
         this.closed = true;
-        this.server.close();
+        this.server?.close();
         this.emit('closed');
     }
 }

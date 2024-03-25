@@ -5,7 +5,7 @@ import * as fs from 'fs';
 import * as util from 'util';
 
 
-let funcs: { [key: string]: (name: string, opts: any) => string } = {
+let funcs: { [key: string]: (name: string, opts: any) => string | undefined } = {
     'env': doEnv,
     'args': doArgs,
     'opts': doOpts
@@ -144,9 +144,10 @@ function configureOnceOff(config: Config) {
                 replaceConsole();
             }
         } catch (e) {
+            const err = e as Error;
             throw new Error(
                 'Problem reading log4js config ' + util.inspect(config) +
-                '. Error was "' + e.message + '" (' + e.stack + ')'
+                '. Error was "' + err.message + '" (' + err.stack + ')'
             );
         }
     }
@@ -184,7 +185,7 @@ export type Config = Configuration & CustomConfig;
 
 function configure(configOrFilename: string | Config, opts?: { [key: string]: any }) {
     let filename = configOrFilename as string;
-    configOrFilename = configOrFilename || process.env.LOG4JS_CONFIG;
+    configOrFilename = configOrFilename || process.env.LOG4JS_CONFIG!;
     opts = opts || {} as Config;
 
     let config: Config;
@@ -292,7 +293,7 @@ function doReplace(src: string, opts: object) {
     return res;
 }
 
-function doEnv(name: string, opts: any): string {
+function doEnv(name: string, opts: any) {
     return process.env[name];
 }
 
@@ -308,9 +309,9 @@ function getLine() {
     let e = new Error();
     // now magic will happen: get line number from callstack
     if (process.platform === 'win32') {
-        return e.stack.split('\n')[3].split(':')[2];
+        return e.stack?.split('\n')[3].split(':')[2];
     }
-    return e.stack.split('\n')[3].split(':')[1];
+    return e.stack?.split('\n')[3].split(':')[1];
 }
 
 export

@@ -85,7 +85,7 @@ function canBeResolve(path: string) {
 
 }
 
-export function defaultAuthUser(msg: {username: string, password: string, md5: string}, env: string, cb: (user: AdminUserInfo) => void) {
+export function defaultAuthUser(msg: {username: string, password: string, md5: string}, env: string, cb: (user: AdminUserInfo | null) => void) {
     let adminUser = null;
     let appBase = process.cwd();
     let adminUserPath = path.join(appBase, DEFAULT_ADMIN_PATH.ADMIN_USER);
@@ -139,7 +139,7 @@ export function defaultAuthServerMaster(msg: {id: string, serverType: string, to
     let servers = null;
     let appBase = process.cwd();
     let serverPath = path.join(appBase, '/config/adminServer');
-    let presentPath = null;
+    let presentPath = '';
     if (env) {
         presentPath = path.join(appBase, 'config', env, 'adminServer');
     }
@@ -165,14 +165,14 @@ export function defaultAuthServerMaster(msg: {id: string, serverType: string, to
     return;
 }
 
-export function defaultAuthServerMonitor(msg: {id: string, serverType: string}, env: string, cb: (result: 'ok' | 'bad') => void) {
+export function defaultAuthServerMonitor(msg: {id: string, serverType: string}, env: string, cb: (result: 'ok' | 'bad' | null) => void) {
     let id = msg['id'];
     let type = msg['serverType'];
 
     let servers = null;
     let appBase = process.cwd();
     let serverPath = path.join(appBase, '/config/adminServer');
-    let presentPath = null;
+    let presentPath = '';
     if (env) {
         presentPath = path.join(appBase, 'config', env, 'adminServer');
     }

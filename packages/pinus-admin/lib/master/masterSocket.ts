@@ -9,12 +9,12 @@ import { AdminUserInfo, ServerInfo } from '../util/constants';
 export class MasterSocket {
 
 
-    id: string = null;
-    type: string = null;
-    info: string | ServerInfo = null;
-    agent: MasterAgent = null;
-    socket: MqttSocket = null;
-    username: string = null;
+    id: string | null = null;
+    type: string | null = null;
+    info: string | ServerInfo | null = null;
+    agent: MasterAgent | null = null;
+    socket: MqttSocket | null = null;
+    username: string | null = null;
     registered = false;
 
 
@@ -34,9 +34,9 @@ export class MasterSocket {
             this.id = serverId;
             this.type = serverType;
             this.info = 'client';
-            this.agent.doAuthUser(msg, socket, function (err: Error) {
+            this.agent?.doAuthUser(msg, socket!, function (err) {
                 if (err) {
-                    return socket.disconnect();
+                    return socket?.disconnect();
                 }
 
                 self.username = msg.username;
@@ -55,9 +55,9 @@ export class MasterSocket {
             this.id = serverId;
             this.type = msg.serverType;
             this.info = msg.info;
-            this.agent.doAuthServer(msg, socket, function (err) {
+            this.agent?.doAuthServer(msg, socket!, function (err) {
                 if (err) {
-                    return socket.disconnect();
+                    return socket?.disconnect();
                 }
 
                 self.registered = true;
@@ -67,12 +67,12 @@ export class MasterSocket {
             return;
         } // end of if(serverType === 'monitor')
 
-        this.agent.doSend(socket, 'register', {
+        this.agent?.doSend(socket!, 'register', {
             code: protocol.PRO_FAIL,
             msg: 'unknown auth master type'
         });
 
-        socket.disconnect();
+        socket?.disconnect();
     }
 
     onMonitor(msg: any) {
@@ -80,7 +80,7 @@ export class MasterSocket {
         if (!this.registered) {
             // not register yet, ignore any message
             // kick connections
-            socket.disconnect();
+            socket?.disconnect();
             return;
         }
 
@@ -95,26 +95,28 @@ export class MasterSocket {
         let respId = msg.respId;
         if (respId) {
             // a response from monitor
-            let cb = self.agent.callbacks[respId];
+            let cb = self.agent?.callbacks[respId];
             if (!cb) {
                 logger.warn('unknown resp id:' + respId);
                 return;
             }
 
             let id = this.id;
-            if (self.agent.msgMap[id]) {
-                delete self.agent.msgMap[id][respId];
+            if (id) {
+                if (self.agent?.msgMap[id]) {
+                    delete self.agent.msgMap[id][respId];
+                }
             }
-            delete self.agent.callbacks[respId];
+            delete self.agent?.callbacks[respId];
             return cb(msg.error, msg.body);
         }
 
         // a request or a notify from monitor
-        self.agent.consoleService.execute(msg.moduleId, 'masterHandler', msg.body, function (err, res) {
+        self.agent?.consoleService.execute(msg.moduleId, 'masterHandler', msg.body, function (err, res) {
             if (protocol.isRequest(msg)) {
                 let resp = protocol.composeResponse(msg, err, res);
                 if (resp) {
-                    self.agent.doSend(socket, 'monitor', resp);
+                    self.agent?.doSend(socket!, 'monitor', resp);
                 }
             } else {
                 // notify should not have a callback
@@ -128,7 +130,7 @@ export class MasterSocket {
         if (!this.registered) {
             // not register yet, ignore any message
             // kick connections
-            return socket.disconnect();
+            return socket?.disconnect();
         }
 
         let type = this.type;
@@ -147,11 +149,11 @@ export class MasterSocket {
 
         if (msgCommand) {
             // a command from client
-            self.agent.consoleService.command(msgCommand, msgModuleId, msgBody, function (err, res) {
+            self.agent?.consoleService.command(msgCommand, msgModuleId, msgBody, function (err, res) {
                 if (protocol.isRequest(msg)) {
                     let resp = protocol.composeResponse(msg, err, res);
                     if (resp) {
-                        self.agent.doSend(socket, 'client', resp);
+                        self.agent?.doSend(socket!, 'client', resp);
                     }
                 } else {
                     // notify should not have a callback
@@ -161,11 +163,11 @@ export class MasterSocket {
         } else {
             // a request or a notify from client
             // and client should not have any response to master for master would not request anything from client
-            self.agent.consoleService.execute(msgModuleId, 'clientHandler', msgBody, function (err, res) {
+            self.agent?.consoleService.execute(msgModuleId, 'clientHandler', msgBody, function (err, res) {
                 if (protocol.isRequest(msg)) {
                     let resp = protocol.composeResponse(msg, err, res);
                     if (resp) {
-                        self.agent.doSend(socket, 'client', resp);
+                        self.agent?.doSend(socket!, 'client', resp);
                     }
                 } else {
                     // notify should not have a callback
@@ -189,9 +191,9 @@ export class MasterSocket {
         let socket = this.socket;
 
         // if is a normal server
-        if (this.agent.idMap[serverId]) {
+        if (this.agent?.idMap[serverId]) {
             // id has been registered
-            this.agent.doSend(socket, 'reconnect_ok', {
+            this.agent.doSend(socket!, 'reconnect_ok', {
                 code: protocol.PRO_FAIL,
                 msg: 'id has been registered. id:' + serverId
             });
@@ -199,19 +201,19 @@ export class MasterSocket {
         }
 
         let msgServerType = msg.serverType;
-        let record = this.agent.addConnection(serverId, msgServerType, msg.pid, msg.info, socket);
+        let record = this.agent?.addConnection(serverId, msgServerType, msg.pid, msg.info, socket!);
 
         this.id = serverId;
         this.type = msgServerType;
         this.registered = true;
         msg.info.pid = pid;
         this.info = msg.info;
-        this.agent.doSend(socket, 'reconnect_ok', {
+        this.agent?.doSend(socket!, 'reconnect_ok', {
             code: protocol.PRO_OK,
             msg: 'ok'
         });
 
-        this.agent.emit('reconnect', msg.info);
+        this.agent?.emit('reconnect', msg.info);
 
         this.repushQosMessage(serverId);
     }
@@ -219,7 +221,7 @@ export class MasterSocket {
     onDisconnect() {
         let socket = this.socket;
         if (socket) {
-            delete this.agent.sockets[socket.id];
+            delete this.agent?.sockets[socket.id];
         }
 
         let registered = this.registered;
@@ -233,9 +235,9 @@ export class MasterSocket {
         let username = this.username;
 
         logger.debug('disconnect %s %s %j', id, type, info);
-        if (registered) {
-            this.agent.removeConnection(id, type, info as ServerInfo);
-            this.agent.emit('disconnect', id, type, info);
+        if (registered && id && type) {
+            this.agent?.removeConnection(id, type, info as ServerInfo);
+            this.agent?.emit('disconnect', id, type, info);
         }
 
         if (type === Constants.TYPE_CLIENT && registered) {
@@ -250,7 +252,7 @@ export class MasterSocket {
     repushQosMessage(serverId: string) {
         let socket = this.socket;
         // repush qos message
-        let qosMsgs = this.agent.msgMap[serverId];
+        let qosMsgs = this.agent?.msgMap[serverId];
 
         if (!qosMsgs) {
             return;
@@ -263,7 +265,7 @@ export class MasterSocket {
             let moduleId = qosMsg['moduleId'];
             let tmsg = qosMsg['msg'];
 
-            this.agent.sendToMonitor(socket, Number(reqId), moduleId, tmsg);
+            this.agent?.sendToMonitor(socket!, Number(reqId), moduleId, tmsg);
         }
     }
 

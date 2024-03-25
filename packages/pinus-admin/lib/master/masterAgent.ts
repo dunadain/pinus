@@ -22,7 +22,7 @@ export interface MasterAgentOptions { whitelist?: WhiteList; }
 export interface AgentClient {
     id: string;
     type: string;
-    pid: string;
+    pid: string | null;
     info: AdminUserInfo | ServerInfo;
     socket: MqttSocket;
 }
@@ -59,16 +59,16 @@ export class MasterAgent extends EventEmitter {
     clients: { [id: string]: AgentClient } = {};
     sockets: { [id: string]: MqttConnection } = {};
     slaveMap: { [serverId: string]: AgentClient[] } = {};
-    server: MqttServer = null;
+    server: MqttServer | null = null;
     callbacks: { [reqId: number]: Callback } = {};
     state = ST_INITED;
 
-    whitelist: WhiteList;
+    whitelist: WhiteList | undefined;
     consoleService: ConsoleService;
 
     constructor(consoleService: ConsoleService, opts: MasterAgentOptions) {
         super();
-        this.whitelist = opts.whitelist;
+        if (opts.whitelist) this.whitelist = opts.whitelist;
         this.consoleService = consoleService;
     }
 
@@ -155,7 +155,7 @@ export class MasterAgent extends EventEmitter {
             return;
         }
         this.state = ST_CLOSED;
-        this.server.close();
+        this.server?.close();
     }
 
     /**
@@ -286,7 +286,7 @@ export class MasterAgent extends EventEmitter {
             return false;
         }
 
-        this.sendToMonitor(record.socket, null, moduleId, msg);
+        this.sendToMonitor(record.socket, 0, moduleId, msg);
 
         return true;
     }
@@ -312,12 +312,12 @@ export class MasterAgent extends EventEmitter {
         }
 
         if (utils.compareServer(record.info as ServerInfo, serverInfo)) {
-            this.sendToMonitor(record.socket, null, moduleId, msg);
+            this.sendToMonitor(record.socket, 0, moduleId, msg);
         } else {
             let slaves = this.slaveMap[serverId];
             for (let i = 0, l = slaves.length; i < l; i++) {
                 if (utils.compareServer(slaves[i].info as ServerInfo, serverInfo)) {
-                    this.sendToMonitor(slaves[i].socket, null, moduleId, msg);
+                    this.sendToMonitor(slaves[i].socket, 0, moduleId, msg);
                     break;
                 }
             }
@@ -403,7 +403,7 @@ export class MasterAgent extends EventEmitter {
             logger.error('fail to notifyClient for unknown client id:' + clientId);
             return false;
         }
-        this.sendToClient(record.socket, null, moduleId, msg);
+        this.sendToClient(record.socket, 0, moduleId, msg);
     }
 
     notifyCommand(command: string, moduleId: string, msg: any) {
@@ -432,40 +432,41 @@ export class MasterAgent extends EventEmitter {
 
         let authUser = self.consoleService.authUser;
         let env = self.consoleService.env;
-        authUser(msg, env,  (user) => {
-            if (!user) {
-                // client should auth with username
-                this.doSend(socket, 'register', {
-                    code: protocol.PRO_FAIL,
-                    msg: 'client auth failed with username or password error'
-                });
-                return cb(new Error('client auth failed with username or password error'));
-            }
+        if (authUser)
+            authUser(msg, env, (user) => {
+                if (!user) {
+                    // client should auth with username
+                    this.doSend(socket, 'register', {
+                        code: protocol.PRO_FAIL,
+                        msg: 'client auth failed with username or password error'
+                    });
+                    return cb(new Error('client auth failed with username or password error'));
+                }
 
-            if (self.clients[msg.id]) {
-                this.doSend(socket, 'register', {
-                    code: protocol.PRO_FAIL,
-                    msg: 'id has been registered. id:' + msg.id
-                });
-                return cb(new Error('id has been registered. id:' + msg.id));
-            }
+                if (self.clients[msg.id]) {
+                    this.doSend(socket, 'register', {
+                        code: protocol.PRO_FAIL,
+                        msg: 'id has been registered. id:' + msg.id
+                    });
+                    return cb(new Error('id has been registered. id:' + msg.id));
+                }
 
-            logger.info('client user : ' + username + ' login to master');
-            this.addConnection(msg.id, msg.type, null, user, socket);
-            this.doSend(socket, 'register', {
-                code: protocol.PRO_OK,
-                msg: 'ok'
+                logger.info('client user : ' + username + ' login to master');
+                this.addConnection(msg.id, msg.type, null, user, socket);
+                this.doSend(socket, 'register', {
+                    code: protocol.PRO_OK,
+                    msg: 'ok'
+                });
+
+                cb();
             });
-
-            cb();
-        });
     }
 
     doAuthServer(msg: AuthServerRequest, socket: MqttSocket, cb: Callback) {
         let self = this;
         let authServer = self.consoleService.authServer;
         let env = self.consoleService.env;
-        authServer(msg, env,  (status) => {
+        authServer(msg, env, (status:any) => {
             if (status !== 'ok') {
                 this.doSend(socket, 'register', {
                     code: protocol.PRO_FAIL,
@@ -497,7 +498,7 @@ export class MasterAgent extends EventEmitter {
      * @param {Object} socket socket-io object
      * @api private
      */
-    addConnection(id: string, type: string, pid: string, info: AdminUserInfo | ServerInfo, socket: MqttSocket) {
+    addConnection(id: string, type: string, pid: string | null, info: AdminUserInfo | ServerInfo, socket: MqttSocket) {
         let record: AgentClient = {
             id: id,
             type: type,
@@ -608,8 +609,8 @@ export class MasterAgent extends EventEmitter {
      * @param {Object} msg message
      * @api private
      */
-    broadcastMonitors(records: { [serverId: string]: AgentClient } | AgentClient[] , moduleId: string, msg: any) {
-        msg = protocol.composeRequest(null, moduleId, msg);
+    broadcastMonitors(records: { [serverId: string]: AgentClient } | AgentClient[], moduleId: string, msg: any) {
+        msg = protocol.composeRequest(0, moduleId, msg);
 
         if (records instanceof Array) {
             for (let i = 0, l = records.length; i < l; i++) {
@@ -625,8 +626,8 @@ export class MasterAgent extends EventEmitter {
         }
     }
 
-    broadcastCommand(records:  AgentClient[] | { [id: string]: AgentClient }, command: string, moduleId: string, msg: any) {
-        msg = protocol.composeCommand(null, command, moduleId, msg);
+    broadcastCommand(records: AgentClient[] | { [id: string]: AgentClient }, command: string, moduleId: string, msg: any) {
+        msg = protocol.composeCommand(0, command, moduleId, msg);
 
         if (records instanceof Array) {
             for (let i = 0, l = records.length; i < l; i++) {

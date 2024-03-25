@@ -31,7 +31,7 @@ export class MonitorLogModule implements IModule {
 
     constructor(opts?: { path?: string, interval?: number }) {
         opts = opts || {};
-        this.root = opts.path;
+        this.root = opts.path ?? '';
         this.interval = opts.interval || DEFAULT_INTERVAL;
     }
 

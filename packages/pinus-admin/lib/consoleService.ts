@@ -19,33 +19,33 @@ export enum ModuleType {
 }
 
 export type MasterCallback = (err?: Error | string | null | undefined, data?: any) => void;
-export type MonitorCallback = (err?: Error | string | null | undefined , data?: any) => void;
+export type MonitorCallback = (err?: Error | string | null | undefined, data?: any) => void;
 
 export interface IModule {
-    moduleId ?: string;
-    type ?: ModuleType;
-    interval ?: number;
-    delay ?: number;
+    moduleId?: string;
+    type?: ModuleType;
+    interval?: number;
+    delay?: number;
 
     start?: (cb: (err?: Error) => void) => void;
 
-    masterHandler ?: (agent: MasterAgent, msg: any, cb: MasterCallback) => void;
-    monitorHandler ?: (agent: MonitorAgent, msg: any, cb: MonitorCallback) => void;
+    masterHandler?: (agent: MasterAgent, msg: any, cb: MasterCallback) => void;
+    monitorHandler?: (agent: MonitorAgent, msg: any, cb: MonitorCallback) => void;
 }
 export interface ModuleRecord {
     moduleId: string;
     module: any;
     enable: boolean;
 
-    delay ?: number;
-    interval ?: number;
-    schedule ?: boolean;
+    delay?: number;
+    interval?: number;
+    schedule?: boolean;
 
     jobId?: number;
 }
 
 export interface IModuleFactory {
-    new (opts: any , consoleService ?: ConsoleService): IModule;
+    new(opts: any, consoleService?: ConsoleService): IModule;
     moduleId: string;
 }
 
@@ -54,8 +54,8 @@ export interface MasterConsoleServiceOpts extends MasterAgentOptions {
     port?: number;
     env?: string;
 
-    authUser ?: typeof utils.defaultAuthUser;
-    authServer ?: typeof utils.defaultAuthServerMaster;
+    authUser?: typeof utils.defaultAuthUser;
+    authServer?: typeof utils.defaultAuthServerMaster;
 }
 
 export interface MonitorConsoleServiceOpts {
@@ -65,7 +65,7 @@ export interface MonitorConsoleServiceOpts {
     info?: ServerInfo;
     port?: number;
     env?: string;
-    authServer ?: typeof utils.defaultAuthServerMaster;
+    authServer?: typeof utils.defaultAuthServerMaster;
     monitorAgentClientFactory?: IMonitorAgentClientFactory;
 }
 
@@ -94,28 +94,28 @@ export interface AdminLogInfo {
  * @api public
  */
 export class ConsoleService extends EventEmitter {
-    port: number;
-    env: string;
-    values: {[key: string]: any};
-    master: boolean;
-    modules: {[key: string]: ModuleRecord};
-    commands: {[key: string]: (consoleService: ConsoleService, moduleId: string, msg: any, cb: Callback) => void};
-    authUser: typeof utils.defaultAuthUser;
-    authServer: typeof utils.defaultAuthServerMonitor;
+    port = 0;
+    env = '';
+    values: { [key: string]: any };
+    master = false;
+    modules: { [key: string]: ModuleRecord };
+    commands: { [key: string]: (consoleService: ConsoleService, moduleId: string, msg: any, cb: Callback) => void };
+    authUser: typeof utils.defaultAuthUser | undefined;
+    authServer: any;
     agent: MasterAgent | MonitorAgent;
 
-    id: string;
-    host: string;
-    type: string;
+    id = '';
+    host = '';
+    type = '';
 
     constructor(_opts: ConsoleServiceOpts) {
         super();
-        this.port = _opts.port;
-        this.env = _opts.env;
+        if (_opts.port) this.port = _opts.port;
+        if (_opts.env) this.env = _opts.env;
         this.values = {};
         let masterOpts = _opts as MasterConsoleServiceOpts;
         let monitorOpts = _opts as MonitorConsoleServiceOpts;
-        this.master = masterOpts.master;
+        this.master = !!masterOpts.master;
 
         this.modules = {};
         this.commands = {
@@ -129,15 +129,15 @@ export class ConsoleService extends EventEmitter {
             this.authServer = masterOpts.authServer || utils.defaultAuthServerMaster;
             this.agent = new MasterAgent(this, masterOpts);
         } else {
-            this.type = monitorOpts.type;
-            this.id = monitorOpts.id;
-            this.host = monitorOpts.host;
+            if (monitorOpts.type) this.type = monitorOpts.type;
+            if (monitorOpts.id) this.id = monitorOpts.id;
+            if (monitorOpts.host) this.host = monitorOpts.host;
             this.authServer = monitorOpts.authServer || utils.defaultAuthServerMonitor;
             this.agent = new MonitorAgent({
                 consoleService: this,
                 id: this.id,
                 type: this.type,
-                info: monitorOpts.info,
+                info: monitorOpts.info!,
                 monitorAgentClientFactory: monitorOpts.monitorAgentClientFactory
             });
         }
@@ -230,7 +230,7 @@ export class ConsoleService extends EventEmitter {
             record.enable = false;
             if (record.schedule && record.jobId) {
                 schedule.cancelJob(record.jobId);
-                record.jobId = null;
+                record.jobId = undefined;
             }
             return true;
         }
@@ -246,7 +246,7 @@ export class ConsoleService extends EventEmitter {
      * @param {Function} cb callback function
      * @api public
      */
-    execute(moduleId: string, method: string, msg: any, cb: (err ?: Error|string , msg?: any) => void) {
+    execute(moduleId: string, method: string, msg: any, cb: (err?: Error | string, msg?: any) => void) {
         let self = this;
         let m = this.modules[moduleId];
         if (!m) {
@@ -290,7 +290,7 @@ export class ConsoleService extends EventEmitter {
         module[method](this.agent, msg, cb);
     }
 
-    command(command: string, moduleId: string, msg: any, cb: (err ?: Error|string , msg?: any) => void) {
+    command(command: string, moduleId: string, msg: any, cb: (err?: Error | string | null, msg?: any) => void) {
         let self = this;
         let fun = this.commands[command];
         if (!fun || typeof fun !== 'function') {
@@ -384,11 +384,13 @@ let registerRecord = function (service: ConsoleService, moduleId: string, module
  */
 let addToSchedule = function (service: ConsoleService, record: ModuleRecord) {
     if (record && record.schedule) {
-        record.jobId = schedule.scheduleJob({
-            start: Date.now() + record.delay,
-            period: record.interval
-        },
-            doScheduleJob, {
+        record.jobId = schedule.scheduleJob(
+            {
+                start: Date.now() + record.delay!,
+                period: record.interval
+            },
+            doScheduleJob,
+            {
                 service: service,
                 record: record
             });
@@ -401,7 +403,8 @@ let addToSchedule = function (service: ConsoleService, record: ModuleRecord) {
  * @param {Object} args argments
  * @api private
  */
-let doScheduleJob = function (args: {service: ConsoleService , record: ModuleRecord}) {
+let doScheduleJob = function (args?: { service: ConsoleService, record: ModuleRecord }) {
+    if (!args) return;
     let service: ConsoleService = args.service;
     let record = args.record;
     if (!service || !record || !record.module || !record.enable) {
@@ -429,9 +432,9 @@ let doScheduleJob = function (args: {service: ConsoleService , record: ModuleRec
  */
 let exportEvent = function (outer: ConsoleService, inner: MasterAgent | MonitorAgent, event: string) {
     inner.on(event, function () {
-        let args = Array.prototype.slice.call(arguments, 0);
+        let args = Array.from(arguments);
         args.unshift(event);
-        outer.emit.apply(outer, args);
+        outer.emit.apply(outer, [args[0], args.slice(1)]);
     });
 };
 
@@ -507,7 +510,7 @@ let disableCommand = function (consoleService: ConsoleService, moduleId: string,
     }
 };
 
-let aclControl = function (agent: MasterAgent, action: string, method: string, moduleId: string, msg: any) {
+let aclControl = function (agent: MasterAgent, action: string, method: string | null, moduleId: string, msg: any) {
     if (action === 'execute') {
         if (method !== 'clientHandler' || moduleId !== '__console__') {
             return 0;

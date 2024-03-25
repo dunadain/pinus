@@ -25,17 +25,17 @@ export class MqttClient extends EventEmitter {
 
     requests = {};
     connectedTimes = 1;
-    host: string = null;
-    port: number = null;
-    socket: MqttConnection = null;
+    host: string | undefined;
+    port: number = 0;
+    socket: MqttConnection | null = null;
     lastPing = -1;
     lastPong = -1;
     closed = false;
-    timeoutId: NodeJS.Timeout = null;
+    timeoutId: NodeJS.Timeout | null = null;
     connected = false;
-    reconnectId: NodeJS.Timeout = null;
+    reconnectId: NodeJS.Timeout | null = null;
     timeoutFlag = false;
-    keepaliveTimer: NodeJS.Timeout = null;
+    keepaliveTimer: NodeJS.Timeout | null = null;
     reconnectDelay = 0;
     constructor(opts: MqttClientOpts) {
         super();
@@ -55,20 +55,16 @@ export class MqttClient extends EventEmitter {
 
         if (host) {
             this.host = host;
-        } else {
-            host = this.host;
         }
 
         if (port) {
             this.port = port;
-        } else {
-            port = this.port;
         }
 
         let self = this;
         this.closed = false;
 
-        let stream = net.createConnection(this.port, this.host);
+        let stream = net.createConnection(this.port, this.host, () => {});
         this.socket = MqttCon(stream);
 
         // logger.info('try to connect %s %s', this.host, this.port);
@@ -89,7 +85,7 @@ export class MqttClient extends EventEmitter {
 
             if (self.connectedTimes++ === 1) {
                 self.emit('connect');
-                cb();
+                if (cb) cb();
             } else {
                 self.emit('reconnect');
             }
@@ -105,12 +101,12 @@ export class MqttClient extends EventEmitter {
         });
 
         this.socket.on('close', function () {
-            logger.error('mqtt socket is close, remote server host: %s, port: %s', host, port);
+            logger.error('mqtt socket is close, remote server host: %s, port: %s', self.host, self.port);
             self.onSocketClose();
         });
 
         this.socket.on('error', function (err: Error) {
-            logger.error('mqtt socket is error, remote server host: %s, port: %s', host, port);
+            logger.error('mqtt socket is error, remote server host: %s, port: %s', self.host, self.port);
             // self.emit('error', new Error('[MqttClient] socket is error, remote server ' + host + ':' + port));
             self.onSocketClose();
         });
@@ -120,7 +116,7 @@ export class MqttClient extends EventEmitter {
         });
 
         this.socket.on('disconnect', function () {
-            logger.error('mqtt socket is disconnect, remote server host: %s, port: %s', host, port);
+            logger.error('mqtt socket is disconnect, remote server host: %s, port: %s', self.host, self.port);
             self.emit('disconnect', self.id);
             self.onSocketClose();
         });
@@ -136,7 +132,7 @@ export class MqttClient extends EventEmitter {
 
     send(topic: string, msg: any) {
         // console.log('MqttClient send %s %j ~~~', topic, msg);
-        this.socket.publish({
+        this.socket?.publish({
             topic: topic,
             payload: JSON.stringify(msg)
         });
@@ -148,14 +144,13 @@ export class MqttClient extends EventEmitter {
             return;
         }
 
-        clearInterval(this.keepaliveTimer);
-        clearTimeout(this.timeoutId);
+        if (this.keepaliveTimer) clearInterval(this.keepaliveTimer);
+        if (this.timeoutId) clearTimeout(this.timeoutId);
         this.keepaliveTimer = null;
         this.lastPing = -1;
         this.lastPong = -1;
         this.connected = false;
         this.closed = true;
-        delete this.socket;
         this.socket = null;
 
         if (this.connectedTimes > 1) {
@@ -176,7 +171,7 @@ export class MqttClient extends EventEmitter {
         this.timeoutId = setTimeout(function () {
             self.timeoutFlag = false;
             logger.error('mqtt client connect %s:%d timeout %d s', self.host, self.port, self.timeout / 1000);
-            self.socket.emit('timeout', reconnectFlag);
+            self.socket?.emit('timeout', reconnectFlag);
         }, self.timeout);
     }
 
@@ -199,8 +194,8 @@ export class MqttClient extends EventEmitter {
     }
 
     setupKeepAlive() {
-        clearTimeout(this.reconnectId);
-        clearTimeout(this.timeoutId);
+        if (this.reconnectId) clearTimeout(this.reconnectId);
+        if (this.timeoutId) clearTimeout(this.timeoutId);
 
         let self = this;
         this.keepaliveTimer = setInterval(function () {
@@ -221,14 +216,14 @@ export class MqttClient extends EventEmitter {
                     logger.error('mqtt rpc client checkKeepAlive error timeout for %d', KEEP_ALIVE_TIMEOUT);
                     this.close();
                 } else {
-                    this.socket.pingreq();
+                    this.socket?.pingreq();
                 }
             } else {
-                this.socket.pingreq();
+                this.socket?.pingreq();
                 this.lastPing = Date.now();
             }
         } else {
-            this.socket.pingreq();
+            this.socket?.pingreq();
             this.lastPing = Date.now();
         }
     }
@@ -237,8 +232,8 @@ export class MqttClient extends EventEmitter {
         this.connected = false;
         this.closed = true;
         // 取消定时
-        clearTimeout(this.reconnectId);
-        clearTimeout(this.timeoutId);
+        if (this.reconnectId) clearTimeout(this.reconnectId);
+        if (this.timeoutId) clearTimeout(this.timeoutId);
         // 主动断线时，socket已关闭被置null的可能
         if (this.socket) {
             this.socket.disconnect();
@@ -248,7 +243,7 @@ export class MqttClient extends EventEmitter {
     close() {
         this.connected = false;
         this.closed = true;
-        this.socket.disconnect();
+        this.socket?.disconnect();
     }
 
     exit() {

@@ -51,7 +51,7 @@ export class MonitorAgent extends EventEmitter {
     monitorAgentClientFactory: IMonitorAgentClientFactory;
 
     reqId = 1;
-    socket: MqttClient;
+    socket: MqttClient | null;
     callbacks: {[reqId: number]: Callback} = {};
     state = ST_INITED;
     constructor(opts: MonitorAgentOpts) {
@@ -156,11 +156,11 @@ export class MonitorAgent extends EventEmitter {
                 serverType: self.type,
                 pid: process.pid,
                 info: self.info,
-                token: undefined as string
+                token: ''
             };
             let authServer = self.consoleService.authServer;
             let env = self.consoleService.env;
-            authServer(req, env, function (token) {
+            authServer(req, env, function (token:any) {
                 req['token'] = token;
                 self.doSend('register', req);
             });
@@ -210,7 +210,7 @@ export class MonitorAgent extends EventEmitter {
             return;
         }
         this.state = ST_CLOSED;
-        this.socket.disconnect();
+        this.socket?.disconnect();
     }
 
     /**
@@ -246,7 +246,7 @@ export class MonitorAgent extends EventEmitter {
             logger.error('agent can not notify now, state:' + this.state);
             return;
         }
-        this.doSend('monitor', protocol.composeRequest(null, moduleId, msg));
+        this.doSend('monitor', protocol.composeRequest(0, moduleId, msg));
         // this.socket.emit('monitor', protocol.composeRequest(null, moduleId, msg));
     }
 
@@ -262,6 +262,6 @@ export class MonitorAgent extends EventEmitter {
     }
 
     doSend(topic: string, msg: any) {
-        this.socket.send(topic, msg);
+        this.socket?.send(topic, msg);
     }
 }

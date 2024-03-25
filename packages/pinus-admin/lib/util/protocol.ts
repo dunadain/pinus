@@ -15,7 +15,7 @@ export function composeRequest(id: number, moduleId: string, body: any) {
     }
 }
 
-export function composeResponse (req: {reqId: number}, err: string | Error, res: any) {
+export function composeResponse (req: {reqId: number}, err: string | Error | null | undefined, res: any) {
     if (req.reqId) {
         // request only
         return JSON.stringify({

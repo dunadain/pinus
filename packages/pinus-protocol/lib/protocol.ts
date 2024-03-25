@@ -131,7 +131,7 @@ export namespace Message {
    * @param  {Buffer} msg           message body bytes
    * @return {Buffer}               encode result
    */
-  export function encode(id: number, type: number, compressRoute: boolean, route: number | string | Buffer | null, msg: Buffer, compressGzip?: boolean) {
+  export function encode(id: number, type: number, compressRoute: boolean, route: number | string | Buffer, msg: Buffer, compressGzip?: boolean) {
     // caculate message max length
     let idBytes = msgHasId(type) ? caculateMsgIdBytes(id) : 0;
     let msgLen = MSG_FLAG_BYTES + idBytes;
@@ -162,7 +162,7 @@ export namespace Message {
     let offset = 0;
 
     // add flag
-    offset = encodeMsgFlag(type, compressRoute, buffer, offset, compressGzip);
+    offset = encodeMsgFlag(type, compressRoute, buffer, offset, !!compressGzip);
 
     // add message id
     if (msgHasId(type)) {

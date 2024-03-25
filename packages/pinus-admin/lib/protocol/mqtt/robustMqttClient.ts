@@ -18,8 +18,8 @@ export class RobustMqttClient extends MqttClient {
 
         let self = this;
         // 移除父类监听，使用新的超时机制
-        this.socket.removeAllListeners('timeout');
-        this.socket.on('timeout', function () {
+        this.socket?.removeAllListeners('timeout');
+        this.socket?.on('timeout', function () {
             self.onSocketClose();
         });
     }
@@ -44,7 +44,7 @@ export class RobustMqttClient extends MqttClient {
             logger.error('mqtt rpc client checkKeepAlive error timeout for %d', KEEP_ALIVE_TIMEOUT);
             this.onSocketClose();
         } else {
-            this.socket.pingreq();
+            this.socket?.pingreq();
             this.lastPing = Date.now();
         }
     }
@@ -53,15 +53,14 @@ export class RobustMqttClient extends MqttClient {
         this.connected = false;
         this.closed = true;
         // 取消定时
-        clearInterval(this.keepaliveTimer);
-        clearTimeout(this.timeoutId);
-        clearTimeout(this.reconnectId);
+        if (this.keepaliveTimer) clearInterval(this.keepaliveTimer);
+        if (this.timeoutId) clearTimeout(this.timeoutId);
+        if (this.reconnectId) clearTimeout(this.reconnectId);
         // 重置
         this.lastPing = -1;
         this.lastPong = -1;
         // 释放连接
         this.socket?.disconnect();
-        delete this.socket;
         this.socket = null;
     }
 }

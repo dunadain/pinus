@@ -54,7 +54,7 @@ export class ScriptsModule implements IModule {
                 cb(null, result);
             }
         } catch (e) {
-            cb(null, e.toString());
+            cb(null, (e as any).toString());
         }
 
         // cb(null, vm.runInContext(msg.script, context));
