@@ -41,7 +41,7 @@ export class ChannelRemote {
                 return reject(new Error('can not send empty message.'));
             }
 
-            let connector = this.app.components.__connector__;
+            let connector = this.app.components.__connector__ as ConnectorComponent;
 
             let sessionService = this.app.get('sessionService');
             let fails: UID[] = [], sids: SID[] = [], sessions: Session[], j: number, k: number;
@@ -56,7 +56,7 @@ export class ChannelRemote {
                 }
             }
             logger.debug('[%s] pushMessage uids: %j, msg: %j, sids: %j', this.app.serverId, uids, msg, sids);
-            connector.send(null, route, msg, sids, opts, function (err) {
+            connector.send(0, route, msg, sids, opts, function (err) {
                 if (err) {
                     return reject(err);
                 }
