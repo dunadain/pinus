@@ -666,7 +666,7 @@ export class RpcClient {
                     break;
             }
             return (serverType: string, msg: RpcMsg, routeParam: object, cb: (err: Error | null, serverId: string) => void) => {
-                method.call(null, this, serverType, msg, function (err, serverId) {
+                method.call(null, this, serverType, msg, function (err:any, serverId:any) {
                     cb(err, serverId!);
                 });
             };
@@ -684,7 +684,7 @@ export class RpcClient {
             }
 
             return (serverType: string, msg: RpcMsg, routeParam: object, cb: (err: Error, serverId: string) => void) => {
-                route.call(target, routeParam, msg, this._routeContext, function (err, serverId) {
+                route.call(target, routeParam, msg, this._routeContext, function (err:any, serverId:any) {
                     cb(err, serverId!);
                 });
             };

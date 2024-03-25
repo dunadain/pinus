@@ -31,7 +31,7 @@ export class ConsoleModule implements IModule {
     static moduleId = '__console__';
 
     constructor(opts: ConsoleModuleOptions) {
-        opts = opts || {};
+        opts = opts ?? {} as any;
         this.app = opts.app;
     }
 
